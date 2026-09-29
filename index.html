@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>จองโต๊ะเรียน ม.2/1 เทอม 2 (เรียลไทม์)</title>
+<title>จองโต๊ะเรียน ม.2/1 เทอม 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--tx:#1f2937;--mut:#6b7280;--pri:#4f46e5;--free:#e0e7ff;--taken:#fca5a5;--mine:#86efac;--hit:#fde047;--bd:#d1d5db}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Sarabun',Tahoma,sans-serif;background:var(--bg);color:var(--tx);padding:12px}
+body{margin:0;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--tx);padding:12px}
 h1{margin:0;font-size:1.4rem}
 header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;max-width:1000px;margin:0 auto 12px}
 .card{background:var(--card);border-radius:12px;padding:14px;max-width:1000px;margin:0 auto 12px;box-shadow:0 1px 4px #0001}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 label{font-size:.85rem;color:var(--mut);display:block;margin-bottom:2px}
 input{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font:inherit;width:100%}
 .f{flex:1;min-width:130px}
@@ -51,9 +51,10 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
+
 <header>
   <h1>🪑 จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</h1>
-  <button class="g" onclick="openAdmin()" id="adminBtn">🔐 ผู้ดูแลระบบ</button>
+  <button class="g" onclick="openAdmin()">🔐 ผู้ดูแลระบบ</button>
 </header>
 
 <div class="card">
@@ -62,7 +63,10 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
     <div class="f"><label>เลขที่</label><input id="no" type="number" min="1" max="40" placeholder="เช่น 12"></div>
   </div>
   <div class="msg" id="msg">กรอกชื่อเล่นและเลขที่ แล้วเลือกโต๊ะที่ต้องการ</div>
-  <div class="row" style="margin-top:8px"><button class="g" onclick="openReq()">🔁 ขอย้าย/สลับที่</button><button class="g" onclick="myReceipt()">🧾 ดูใบหลักฐานของฉัน</button></div>
+  <div class="row" style="margin-top:8px">
+    <button class="g" onclick="openReq()">🔁 ขอย้าย/สลับที่</button>
+    <button class="g" onclick="myReceipt()">🧾 ดูใบหลักฐานของฉัน</button>
+  </div>
   <p style="font-size:.8rem;color:var(--mut);margin:6px 0 0">💡 ถ้าจองแล้ว แค่กดที่โต๊ะอื่น (ว่าง = ขอย้าย, มีคนนั่ง = ขอสลับ) ระบบจะส่งคำขอให้ผู้ดูแลอนุมัติ</p>
 </div>
 
@@ -78,7 +82,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <p style="text-align:center;color:var(--mut);margin:8px 0 0" id="count"></p>
 </div>
 
-<div class="card" id="listCard">
+<div class="card">
   <b>รายชื่อผู้จอง (ตามที่ค้นหา)</b>
   <div style="overflow-x:auto"><table><thead><tr><th>โต๊ะ</th><th>ชื่อเล่น</th><th>เลขที่</th><th>เวลา</th></tr></thead><tbody id="list"></tbody></table></div>
 </div>
@@ -88,14 +92,9 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <div style="overflow-x:auto"><table><thead><tr><th>ผู้ขอ</th><th>ประเภท</th><th>โต๊ะ</th><th>สถานะ</th></tr></thead><tbody id="reqList"></tbody></table></div>
 </div>
 
-<!-- Receipt -->
-<div class="overlay" id="ovR"><div class="modal">
-  <h2 style="margin:0">✅ จองสำเร็จ</h2>
-  <div class="receipt" id="rc"></div>
-  <div class="row"><button onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button><button class="g" onclick="closeAll()">ปิด</button></div>
-</div></div>
+<!-- Overlays / Modals -->
+<div class="overlay" id="ovR"><div class="modal"><h2 style="margin:0">✅ จองสำเร็จ</h2><div class="receipt" id="rc"></div><div class="row"><button onclick="window.print()">🖨️️ พิมพ์ / บันทึกเป็น PDF</button><button class="g" onclick="closeAll()">ปิด</button></div></div></div>
 
-<!-- Request move/swap -->
 <div class="overlay" id="ovQ"><div class="modal">
   <h3 style="margin-top:0">🔁 ขอย้าย/สลับที่</h3>
   <p id="qInfo"></p>
@@ -106,24 +105,18 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <div class="row"><button onclick="sendReq()">ส่งคำขอ</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
 </div></div>
 
-<!-- Confirm -->
-<div class="overlay" id="ovC"><div class="modal">
-  <h3 style="margin-top:0">ยืนยันการจอง</h3>
-  <p id="cTxt"></p>
-  <div class="row"><button onclick="confirmBook()">ยืนยัน</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
-</div></div>
+<div class="overlay" id="ovC"><div class="modal"><h3 style="margin-top:0">ยืนยันการจอง</h3><p id="cTxt"></p><div class="row"><button onclick="confirmBook()">ยืนยัน</button><button class="g" onclick="closeAll()">ยกเลิก</button></div></div></div>
 
-<!-- Admin Panel -->
 <div class="overlay" id="ovA"><div class="modal" style="max-width:640px">
   <div id="aLogin">
     <h3 style="margin-top:0">เข้าสู่ระบบผู้ดูแล</h3>
-    <label>ชื่อผู้ใช้</label><input id="au" autocomplete="off">
-    <label style="margin-top:8px">รหัสผ่าน</label><input id="ap" type="password" autocomplete="off">
+    <label>ชื่อผู้ใช้</label><input id="au">
+    <label style="margin-top:8px">รหัสผ่าน</label><input id="ap" type="password">
     <div class="msg" id="aMsg"></div>
     <div class="row"><button onclick="login()">เข้าสู่ระบบ</button><button class="g" onclick="closeAll()">ปิด</button></div>
   </div>
   <div id="aPanel" style="display:none">
-    <h3 style="margin-top:0">🛠️ แผงผู้ดูแล (focus2013)</h3>
+    <h3 style="margin-top:0">🛠️ แผงผู้ดูแล</h3>
     <div class="row" style="margin-bottom:8px">
       <button onclick="exportCSV()">⬇️ ส่งออก CSV</button>
       <button class="r" onclick="clearAll()">ล้างการจองทั้งหมด</button>
@@ -139,12 +132,10 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   </div>
 </div></div>
 
-<div class="overlay" id="ovK" style="z-index:120"><div class="modal">
-  <p id="kTxt" style="font-size:1.05rem;margin-top:0"></p>
-  <div class="row"><button id="kYes">ตกลง</button><button class="g" id="kNo">ยกเลิก</button></div>
-</div></div>
+<div class="overlay" id="ovK" style="z-index:120"><div class="modal"><p id="kTxt" style="font-size:1.05rem;margin-top:0"></p><div class="row"><button id="kYes">ตกลง</button><button class="g" id="kNo">ยกเลิก</button></div></div></div>
 
 <script>
+// 1. Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAw9bGYrEWaxRHl4haD-Grd4_8viv2vHnI",
   authDomain: "sw2-201.firebaseapp.com",
@@ -156,188 +147,317 @@ const firebaseConfig = {
   measurementId: "G-QVRBTEMFH7"
 };
 
-const ZONES=[{k:'L',n:'โซนซ้าย (นั่งคู่)',c:2},{k:'C',n:'โซนกลาง',c:3},{k:'W',n:'โซนหน้าต่าง',c:3}];
-const ROWS=5;
-let seats=[];
-function initSeats(){
-  seats=[];
-  let id=1;
-  ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
-}
-initSeats();
+// 2. Data Structure & Global Variables
+const ZONES = [
+  {k:'L', n:'โซนซ้าย (นั่งคู่)', c:2},
+  {k:'C', n:'โซนกลาง', c:3},
+  {k:'W', n:'โซนหน้าต่าง', c:3}
+];
+const ROWS = 5;
+const seats = [];
+let idCounter = 1;
+ZONES.forEach(z => {
+  for(let r=1; r<=ROWS; r++){
+    for(let c=1; c<=z.c; c++){
+      seats.push({id: idCounter++, z: z.k, zn: z.n, r, c});
+    }
+  }
+});
 
 let db = null;
-let data={}, reqs=[], pending=null, isAdmin=false;
+let data = {};
+let reqs = [];
+let pending = null;
+let isAdmin = false;
 
-const $=s=>document.getElementById(s);
-function ask(text,cb){
-  $('kTxt').textContent=text;
-  const done=()=>$('ovK').classList.remove('on');
-  $('kYes').onclick=()=>{done();if(cb)cb()};$('kNo').onclick=done;
-  $('kNo').style.display=cb?'':'none';$('ovK').classList.add('on');
+// Helper Functions
+const $ = id => document.getElementById(id);
+const desc = s => `${s.zn} แถว ${s.r} ที่ ${s.c}`;
+const esc = t => String(t||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function stamp(d){
+  const p = n => String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()+543} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
+function byNo(n){ return Object.values(data).find(b => String(b.no) === String(n)); }
+function mySeat(nick, no){
+  const b = byNo(no);
+  return (b && b.nick.trim().toLowerCase() === nick.trim().toLowerCase()) ? b : null;
+}
+function setMsg(t, ok){ const el=$('msg'); if(el){ el.textContent=t; el.style.color=ok?'#16a34a':'#dc2626'; } }
+function closeAll(){ document.querySelectorAll('.overlay').forEach(o => o.classList.remove('on')); }
 
-const desc=s=>`${s.zn} แถว ${s.r} ที่ ${s.c}`;
-const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function stamp(d){const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()+543} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`}
-function byNo(n){return Object.values(data).find(b=>String(b.no)===String(n))}
-function setMsg(t,ok){$('msg').textContent=t;$('msg').style.color=ok?'#16a34a':'#dc2626'}
-
+// 3. Render Function
 function render(){
-  if(!seats || seats.length === 0) initSeats();
   const zonesEl = $('zones');
   if(!zonesEl) return;
+  
+  const nickInput = $('nick') ?$('nick').value.trim() : '';
+  const noInput = $('no') ?$('no').value.trim() : '';
+  const q = $('q') ?$('q').value.trim().toLowerCase() : '';
 
-  const no=($('no')?$('no').value:'').trim(), q=($('q')?$('q').value:'').trim().toLowerCase();
-  zonesEl.innerHTML='';
-  ZONES.forEach(z=>{
-    const d=document.createElement('div');d.className='zone '+z.k;
-    d.innerHTML=`<h3>${z.n}</h3><div class="grid"></div>`;
-    const g=d.querySelector('.grid');
-    seats.filter(s=>s.z===z.k).forEach(s=>{
-      const b=data[s.id],el=document.createElement('button');
-      el.type='button';
-      el.className='seat'+(b?' taken':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
-      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:`<span>ว่าง</span>`);
-      el.title=desc(s)+(b?` — ${b.nick} (เลขที่ ${b.no})`:'');
-      el.onclick=()=>pick(s);
+  zonesEl.innerHTML = '';
+  ZONES.forEach(z => {
+    const d = document.createElement('div');
+    d.className = 'zone ' + z.k;
+    d.innerHTML = `<h3>${z.n}</h3><div class="grid"></div>`;
+    const g = d.querySelector('.grid');
+    
+    seats.filter(s => s.z === z.k).forEach(s => {
+      const b = data[s.id];
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'seat' + 
+        (b ? ' taken' : '') + 
+        (b && noInput && String(b.no) === noInput ? ' mine' : '') + 
+        (b && q && (b.nick.toLowerCase().includes(q) || String(b.no) === q) ? ' hit' : '');
+      
+      el.innerHTML = `<b>${s.id}</b>` + (b ? `<span class="nm">${esc(b.nick)}<br>(${b.no})</span>` : `<span>ว่าง</span>`);
+      el.title = desc(s) + (b ? ` — ${b.nick} (เลขที่ ${b.no})` : '');
+      el.onclick = () => pick(s);
       g.appendChild(el);
     });
     zonesEl.appendChild(d);
   });
-  if($('count'))$('count').textContent=`จองแล้ว ${Object.keys(data).length} / ${seats.length} โต๊ะ • ว่าง ${seats.length-Object.keys(data).length} โต๊ะ`;
-  const rows=Object.entries(data).sort((a,b)=>a[0]-b[0]).filter(([_,b])=>!q||b.nick.toLowerCase().includes(q)||String(b.no)===q);
-  if($('list'))$('list').innerHTML=rows.map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ไม่พบข้อมูล</td></tr>';
-  const st={pending:['p','รออนุมัติ'],approved:['a','อนุมัติแล้ว'],rejected:['x','ไม่อนุมัติ']};
-  if($('reqList'))$('reqList').innerHTML=reqs.slice().reverse().filter(r=>!q||r.nick.toLowerCase().includes(q)||String(r.no)===q).map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีคำขอ</td></tr>';
-  if(isAdmin)renderAdmin();
+
+  if($('count'))$('count').textContent = `จองแล้ว ${Object.keys(data).length} / ${seats.length} โต๊ะ • ว่าง ${seats.length - Object.keys(data).length} โต๊ะ`;
+  
+  const rows = Object.entries(data).sort((a,b) => a[0]-b[0]).filter(([_,b]) => !q || b.nick.toLowerCase().includes(q) || String(b.no) === q);
+  if($('list'))$('list').innerHTML = rows.map(([i,b]) => `<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td></tr>`).join('') || '<tr><td colspan="4" style="color:var(--mut)">ไม่พบข้อมูล</td></tr>';
+
+  const st = {pending:['p','รออนุมัติ'], approved:['a','อนุมัติแล้ว'], rejected:['x','ไม่อนุมัติ']};
+  if($('reqList'))$('reqList').innerHTML = reqs.slice().reverse().filter(r => !q || r.nick.toLowerCase().includes(q) || String(r.no) === q).map(r => `<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td></tr>`).join('') || '<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีคำขอ</td></tr>';
+
+  if(isAdmin) renderAdmin();
 }
 
+// 4. Booking Logic
 function pick(s){
-  const nick=$('nick').value.trim(),no=$('no').value.trim();
-  const me=nick&&no?mySeat(nick,no):null;
-  if(me){if(me.seat===s.id)return setMsg('นี่คือโต๊ะของคุณอยู่แล้ว',true);return openReq(s.id)}
-  if(data[s.id])return setMsg(`โต๊ะ ${s.id} ถูกจองแล้วโดย ${data[s.id].nick}`);
-  if(!nick||!no||+no<1||+no>40)return setMsg('กรุณากรอกชื่อเล่นและเลขที่ (1-40) ให้ถูกต้องก่อน');
-  const ex=byNo(no);
-  if(ex)return setMsg(`เลขที่ ${no} จองไปแล้ว (โต๊ะ ${ex.seat}) หากเป็นของคุณ ให้กรอกชื่อเล่นให้ตรงกับตอนจองเพื่อขอย้าย/สลับที่`);
-  pending={s,nick,no};
-  $('cTxt').innerHTML=`ชื่อเล่น <b>${esc(nick)}</b> เลขที่ <b>${esc(no)}</b><br>ต้องการจอง <b>โต๊ะ ${s.id}</b> (${desc(s)}) ใช่หรือไม่?`;
+  const nick = $('nick').value.trim();
+  const no = $('no').value.trim();
+  const me = (nick && no) ? mySeat(nick, no) : null;
+
+  if(me){
+    if(me.seat === s.id) return setMsg('นี่คือโต๊ะของคุณอยู่แล้ว', true);
+    return openReq(s.id);
+  }
+  if(data[s.id]) return setMsg(`โต๊ะ ${s.id} ถูกจองแล้วโดย ${data[s.id].nick}`);
+  if(!nick || !no || +no < 1 || +no > 40) return setMsg('กรุณากรอกชื่อเล่นและเลขที่ (1-40) ให้ถูกต้องก่อน');
+  
+  const ex = byNo(no);
+  if(ex) return setMsg(`เลขที่ ${no} จองไปแล้ว (โต๊ะ ${ex.seat}) หากเป็นของคุณ ให้กรอกชื่อเล่นให้ตรงกับตอนจองเพื่อขอย้าย/สลับที่`);
+
+  pending = {s, nick, no};
+  $('cTxt').innerHTML = `ชื่อเล่น <b>${esc(nick)}</b> เลขที่ <b>${esc(no)}</b><br>ต้องการจอง <b>โต๊ะ ${s.id}</b> (${desc(s)}) ใช่หรือไม่?`;
   $('ovC').classList.add('on');
 }
+
 function confirmBook(){
-  const {s,nick,no}=pending;
-  if(data[s.id]||byNo(no)){closeAll();return setMsg('โต๊ะนี้หรือเลขที่นี้ถูกใช้ไปแล้ว')}
-  const now=new Date();
-  data[s.id]={nick,no:+no,seat:s.id,desc:desc(s),time:stamp(now)};
-  saveData();closeAll();showReceipt(data[s.id]);setMsg('จองสำเร็จ!',true);
+  if(!pending) return;
+  const {s, nick, no} = pending;
+  if(data[s.id] || byNo(no)){ closeAll(); return setMsg('โต๊ะนี้หรือเลขที่นี้ถูกใช้ไปแล้ว'); }
+  
+  const now = new Date();
+  data[s.id] = {nick, no: +no, seat: s.id, desc: desc(s), time: stamp(now)};
+  saveData();
+  closeAll();
+  showReceipt(data[s.id]);
+  setMsg('จองสำเร็จ!', true);
   render();
 }
+
 function showReceipt(b){
-  $('rc').innerHTML=`<div style="justify-content:center;font-weight:700;border:0">ใบหลักฐานการจองโต๊ะ<br>ห้อง ม.2/1 เทอม 2</div>
-  <div><span>ชื่อเล่น</span><b>${esc(b.nick)}</b></div>
-  <div><span>เลขที่</span><b>${b.no}</b></div>
-  <div><span>โต๊ะที่จอง</span><b>โต๊ะ ${b.seat}</b></div>
-  <div><span>ตำแหน่ง</span><b>${esc(b.desc)}</b></div>
-  <div><span>เวลาที่จอง</span><b>${b.time}</b></div>${b.upd?`<div style="border:0"><span>ย้าย/สลับล่าสุด</span><b>${b.upd}</b></div>`:""}`;
+  $('rc').innerHTML = `
+    <div style="justify-content:center;font-weight:700;border:0">ใบหลักฐานการจองโต๊ะ<br>ห้อง ม.2/1 เทอม 2</div>
+    <div><span>ชื่อเล่น</span><b>${esc(b.nick)}</b></div>
+    <div><span>เลขที่</span><b>${b.no}</b></div>
+    <div><span>โต๊ะที่จอง</span><b>โต๊ะ ${b.seat}</b></div>
+    <div><span>ตำแหน่ง</span><b>${esc(b.desc)}</b></div>
+    <div><span>เวลาที่จอง</span><b>${b.time}</b></div>
+    ${b.upd ? `<div style="border:0"><span>ย้าย/สลับล่าสุด</span><b>${b.upd}</b></div>` : ""}
+  `;
   $('ovR').classList.add('on');
 }
-function closeAll(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'))}
 
-// Admin
-function openAdmin(){$('ovA').classList.add('on');$('aLogin').style.display=isAdmin?'none':'';$('aPanel').style.display=isAdmin?'':'none';if(isAdmin)renderAdmin()}
-function login(){
-  if($('au').value.trim()==='focus2013'&&$('ap').value==='ihavecpu'){
-    isAdmin=true;$('aMsg').textContent='';$('au').value=$('ap').value='';openAdmin();
-  }else $('aMsg').textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-}
-function logout(){isAdmin=false;closeAll()}
-function renderAdmin(){
-  renderAdminReq();
-  $('aList').innerHTML=Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td><td><button class="r" onclick="cancelSeat(${i})">ยกเลิก</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--mut)">ยังไม่มีการจอง</td></tr>';
-}
-function cancelSeat(i){if(!isAdmin)return;ask(`ยกเลิกการจองโต๊ะ ${i} ของ ${data[i].nick}?`,()=>{delete data[i];saveData();render();})}
-function clearAll(){if(!isAdmin)return;ask('ล้างการจองและคำขอทั้งหมด? ย้อนกลับไม่ได้',()=>{data={};reqs=[];saveData();saveReqs();render();})}
-function exportCSV(){
-  const rows=[['โต๊ะ','ชื่อเล่น','เลขที่','ตำแหน่ง','เวลา']].concat(Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>[i,b.nick,b.no,b.desc,b.time]));
-  const csv='\ufeff'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='รายชื่อจองโต๊ะ.csv';a.click();
+function myReceipt(){
+  const me = mySeat($('nick').value, $('no').value);
+  if(!me) return setMsg('ไม่พบการจอง (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง)');
+  showReceipt(me);
 }
 
-function mySeat(nick,no){const b=byNo(no);return b&&b.nick.trim().toLowerCase()===nick.trim().toLowerCase()?b:null}
-function myReceipt(){const me=mySeat($('nick').value,$('no').value);if(!me)return setMsg('ไม่พบการจอง (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง)');showReceipt(me)}
+// 5. Move / Swap Logic
 function openReq(target){
-  const nick=$('nick').value.trim(),no=$('no').value.trim();
-  if(!nick||!no)return setMsg('กรอกชื่อเล่นและเลขที่ก่อนขอย้าย/สลับที่');
-  const me=mySeat(nick,no);
-  if(!me)return setMsg('ไม่พบการจองของคุณ (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง) ต้องจองก่อนจึงขอย้ายได้');
-  $('qInfo').innerHTML=`คุณ <b>${esc(me.nick)}</b> เลขที่ ${me.no} นั่งโต๊ะ <b>${me.seat}</b> (${esc(me.desc)})`;
-  $('qTo').value=target\vert{}\vert{}'';$('qNote').value='';$('qMsg').textContent='';updQ();$('ovQ').classList.add('on');
+  const nick = $('nick').value.trim();
+  const no = $('no').value.trim();
+  if(!nick || !no) return setMsg('กรอกชื่อเล่นและเลขที่ก่อนขอย้าย/สลับที่');
+  const me = mySeat(nick, no);
+  if(!me) return setMsg('ไม่พบการจองของคุณ (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง)');
+  
+  $('qInfo').innerHTML = `คุณ <b>${esc(me.nick)}</b> เลขที่ ${me.no} นั่งโต๊ะ <b>${me.seat}</b> (${esc(me.desc)})`;
+  $('qTo').value = target || '';
+  $('qNote').value = '';$('qMsg').textContent = '';
+  updQ();
+  $('ovQ').classList.add('on');
 }
+
 function updQ(){
-  const t=+$('qTo').value,o=data[t];$('qPrev').textContent=!(t>=1&&t<=40)?'':!o?`โต๊ะ ${t} ว่าง → ส่งคำขอ "ย้ายที่"`:`โต๊ะ ${t} มี ${o.nick} (เลขที่ ${o.no}) → ส่งคำขอ "สลับที่"`;
+  const t = +$('qTo').value;
+  const o = data[t];
+  $('qPrev').textContent = !(t >= 1 && t <= 40) ? '' : !o ? `โต๊ะ ${t} ว่าง → ส่งคำขอ "ย้ายที่"` : `โต๊ะ ${t} มี ${o.nick} (เลขที่ ${o.no}) → ส่งคำขอ "สลับที่"`;
 }
+
 function sendReq(){
-  const me=mySeat($('nick').value,$('no').value),t=+$('qTo').value,m=$('qMsg');
-  if(!me)return m.textContent='ไม่พบการจองของคุณ';
-  if(!(t>=1&&t<=40))return m.textContent='ระบุโต๊ะ 1-40';
-  if(t===me.seat)return m.textContent='นี่คือโต๊ะของคุณอยู่แล้ว';
-  if(reqs.some(r=>r.status==='pending'&&r.no===me.no))return m.textContent='คุณมีคำขอที่รออนุมัติอยู่แล้ว';
-  const o=data[t];
-  const newReq = {id:Date.now()+'_'+Math.random().toString(36).slice(2,7),type:o?'swap':'move',no:me.no,nick:me.nick,from:me.seat,to:t,withNo:o?o.no:null,withNick:o?o.nick:null,note:$('qNote').value.trim(),time:stamp(new Date()),status:'pending'};
+  const me = mySeat($('nick').value, $('no').value);
+  const t = +$('qTo').value;
+  const m = $('qMsg');
+  if(!me) return m.textContent = 'ไม่พบการจองของคุณ';
+  if(!(t >= 1 && t <= 40)) return m.textContent = 'ระบุโต๊ะ 1-40';
+  if(t === me.seat) return m.textContent = 'นี่คือโต๊ะของคุณอยู่แล้ว';
+  if(reqs.some(r => r.status === 'pending' && r.no === me.no)) return m.textContent = 'คุณมีคำขอที่รออนุมัติอยู่แล้ว';
+
+  const o = data[t];
+  const newReq = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    type: o ? 'swap' : 'move',
+    no: me.no,
+    nick: me.nick,
+    from: me.seat,
+    to: t,
+    withNo: o ? o.no : null,
+    withNick: o ? o.nick : null,
+    note: $('qNote').value.trim(),
+    time: stamp(new Date()),
+    status: 'pending'
+  };
   reqs.push(newReq);
-  saveReqs();closeAll();setMsg('ส่งคำขอแล้ว รอผู้ดูแลอนุมัติ',true);
+  saveReqs();
+  closeAll();
+  setMsg('ส่งคำขอแล้ว รอผู้ดูแลอนุมัติ', true);
   render();
 }
-function saveData(){ if(db) db.ref('seatsData').set(data); }
-function saveReqs(){ 
-  if(db) {
-    const reqObj = {};
-    reqs.forEach(r => { reqObj[r.id] = r; });
-    db.ref('requestsData').set(reqObj); 
+
+// 6. Admin Panel
+function openAdmin(){
+  $('ovA').classList.add('on');$('aLogin').style.display = isAdmin ? 'none' : '';
+  $('aPanel').style.display = isAdmin ? '' : 'none';
+  if(isAdmin) renderAdmin();
+}
+function login(){
+  if($('au').value.trim() === 'focus2013' &&$('ap').value === 'ihavecpu'){
+    isAdmin = true;
+    $('aMsg').textContent = '';
+    $('au').value =$('ap').value = '';
+    openAdmin();
+  } else {
+    $('aMsg').textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
   }
 }
-function doMove(a,b){
-  const x=data[a],y=data[b];if(!x||a===b)return false;
-  if(y){data[a]=y;data[b]=x}else{data[b]=x;delete data[a]}
-  [a,b].forEach(i=>{if(data[i]){data[i].seat=+i;data[i].desc=desc(seats[i-1]);data[i].upd=stamp(new Date())}});
-  saveData();return true;
+function logout(){ isAdmin = false; closeAll(); }
+
+function renderAdmin(){
+  $('aReq').innerHTML = reqs.filter(r => r.status === 'pending').map(r => `
+    <tr>
+      <td>${esc(r.nick)} (${r.no})</td>
+      <td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td>
+      <td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td>
+      <td>${esc(r.note||'-')}</td>
+      <td style="white-space:nowrap">
+        <button class="sm" onclick="decide('${r.id}',true)">อนุมัติ</button>
+        <button class="sm r" onclick="decide('${r.id}',false)">ปฏิเสธ</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="color:var(--mut)">ไม่มีคำขอที่รออนุมัติ</td></tr>';
+
+  $('aList').innerHTML = Object.entries(data).sort((a,b) => a[0]-b[0]).map(([i,b]) => `
+    <tr>
+      <td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td>
+      <td><button class="r" onclick="cancelSeat(${i})">ยกเลิก</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="color:var(--mut)">ยังไม่มีการจอง</td></tr>';
 }
-function renderAdminReq(){
-  $('aReq').innerHTML=reqs.filter(r=>r.status==='pending').map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td>${esc(r.note||'-')}</td><td style="white-space:nowrap"><button class="sm" onclick="decide('${r.id}',true)">อนุมัติ</button><button class="sm r" onclick="decide('${r.id}',false)">ปฏิเสธ</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--mut)">ไม่มีคำขอที่รออนุมัติ</td></tr>';
-}
-function decide(rid,ok){
-  if(!isAdmin)return;
-  const r=reqs.find(x=>x.id===rid);if(!r)return;
+
+function decide(rid, ok){
+  if(!isAdmin) return;
+  const r = reqs.find(x => x.id === rid);
+  if(!r) return;
   if(ok){
-    const x=data[r.from],y=data[r.to];
-    if(x&&x.no===r.no&&(r.type==='move'?!y:(y&&y.no===r.withNo))){doMove(r.from,r.to);r.status='approved'}
-    else{ask('ที่นั่งมีการเปลี่ยนแปลงแล้ว คำขอนี้ใช้ไม่ได้ จึงตั้งเป็น "ไม่อนุมัติ"');r.status='rejected'}
-  }else r.status='rejected';
+    const x = data[r.from], y = data[r.to];
+    if(x && x.no === r.no && (r.type === 'move' ? !y : (y && y.no === r.withNo))){
+      doMove(r.from, r.to);
+      r.status = 'approved';
+    } else {
+      alert('ที่นั่งมีการเปลี่ยนแปลงแล้ว คำขอนี้ใช้ไม่ได้ จึงตั้งเป็น "ไม่อนุมัติ"');
+      r.status = 'rejected';
+    }
+  } else {
+    r.status = 'rejected';
+  }
   saveReqs();
   render();
 }
-function adminMove(){
-  if(!isAdmin)return;
-  const a=+$('mvA').value,b=+$('mvB').value,m=$('mvMsg');m.style.color='#dc2626';
-  if(!(a>=1&&a<=40&&b>=1&&b<=40)||a===b)return m.textContent='ระบุโต๊ะ 1-40 สองโต๊ะที่ไม่ซ้ำกัน';
-  if(!data[a])return m.textContent=`โต๊ะ ${a} ยังไม่มีคนจอง`;
-  const sw=!!data[b];
-  ask(sw?`สลับที่ ${data[a].nick} (โต๊ะ ${a}) กับ ${data[b].nick} (โต๊ะ ${b})?`:`ย้าย ${data[a].nick} จากโต๊ะ ${a} ไปโต๊ะ ${b}?`,()=>{
-    doMove(a,b);m.style.color='#16a34a';m.textContent=sw?'สลับที่เรียบร้อย':'ย้ายที่เรียบร้อย';
-    render();
+
+function doMove(a, b){
+  const x = data[a], y = data[b];
+  if(!x || a === b) return false;
+  if(y){ data[a] = y; data[b] = x; } else { data[b] = x; delete data[a]; }
+  [a, b].forEach(i => {
+    if(data[i]){
+      data[i].seat = +i;
+      data[i].desc = desc(seats[i-1]);
+      data[i].upd = stamp(new Date());
+    }
   });
+  saveData();
+  return true;
 }
 
-// Event Listeners
-['no','nick','q'].forEach(i=>{
+function cancelSeat(i){
+  if(!isAdmin) return;
+  if(confirm(`ยกเลิกการจองโต๊ะ ${i} ของ ${data[i].nick}?`)){
+    delete data[i];
+    saveData();
+    render();
+  }
+}
+
+function clearAll(){
+  if(!isAdmin) return;
+  if(confirm('ล้างการจองและคำขอทั้งหมด? ย้อนกลับไม่ได้')){
+    data = {}; reqs = [];
+    saveData(); saveReqs();
+    render();
+  }
+}
+
+function exportCSV(){
+  const rows = [['โต๊ะ','ชื่อเล่น','เลขที่','ตำแหน่ง','เวลา']].concat(
+    Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>[i,b.nick,b.no,b.desc,b.time])
+  );
+  const csv = '\ufeff' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'รายชื่อจองโต๊ะ.csv';
+  a.click();
+}
+
+// 7. Firebase Sync
+function saveData(){ if(db) db.ref('seatsData').set(data); }
+function saveReqs(){
+  if(db) {
+    const reqObj = {};
+    reqs.forEach(r => { reqObj[r.id] = r; });
+    db.ref('requestsData').set(reqObj);
+  }
+}
+
+// Events Listener
+['no','nick','q'].forEach(i => {
   const el = $(i);
-  if(el) el.addEventListener('input',render);
+  if(el) el.addEventListener('input', render);
 });
 
-// Init Firebase
+// Initialization
 window.addEventListener('DOMContentLoaded', () => {
-  render();
+  render(); // แสดงผังโต๊ะตั้งแต่วินาทีแรกที่โหลดเว็บ
   try {
     if (typeof firebase !== 'undefined') {
       firebase.initializeApp(firebaseConfig);
@@ -353,9 +473,10 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
   } catch(e) {
-    console.warn("Firebase error fallback to local", e);
+    console.warn("Firebase Init Fail", e);
   }
 });
 </script>
+
 </body>
 </html>
