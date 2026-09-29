@@ -24,7 +24,7 @@ button.g{background:#e5e7eb;color:var(--tx)}button.r{background:#dc2626}
 .zones{display:flex;gap:22px;justify-content:center;min-width:660px}
 .zone h3{text-align:center;font-size:.95rem;margin:0 0 6px}
 .grid{display:grid;gap:6px}
-.seat{width:74px;height:64px;border:2px solid #a5b4fc;background:var(--free);border-radius:8px;font:inherit;color:var(--tx);padding:2px;font-size:.75rem;line-height:1.15;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden}
+.seat{width:74px;height:64px;border:2px solid #a5b4fc;background:var(--free);border-radius:8px;font:inherit;color:var(--tx);padding:2px;font-size:.75rem;line-height:1.15;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:pointer}
 .seat b{font-size:.85rem;color:var(--mut)}.seat .nm{font-weight:600;font-size:.8rem;max-width:100%;word-break:break-all}
 .seat.taken{background:var(--taken);border-color:#ef4444;cursor:not-allowed}
 .seat.mine{background:var(--mine);border-color:#16a34a}
@@ -147,7 +147,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 </div></div>
 
 <script>
-// --- ตั้งค่า Firebase Realtime Database ---
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAw9bGYrEWaxRHl4haD-Grd4_8viv2vHnI",
   authDomain: "sw2-201.firebaseapp.com",
@@ -177,7 +177,7 @@ ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:
 
 let data={}, reqs=[], pending=null, isAdmin=false;
 
-// --- ดึงข้อมูลแบบ Realtime จาก Firebase ---
+// --- ดึงข้อมูล Realtime ---
 db.ref('seatsData').on('value', snapshot => {
   data = snapshot.val() || {};
   render();
@@ -332,6 +332,9 @@ function adminMove(){
 }
 
 ['no','nick','q'].forEach(i=>$(i).addEventListener('input',render));
+
+// แสดงโต๊ะเบื้องต้นทันทีเมื่อเปิดหน้าเว็บ
+render();
 </script>
 </body>
 </html>
