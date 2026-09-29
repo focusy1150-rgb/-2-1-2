@@ -2,103 +2,328 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>จองโต๊ะเรียน ม.2/1 เทอม 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root { --bg: #f4f6fb; --card: #fff; --tx: #1f2937; --mut: #6b7280; --pri: #4f46e5; --free: #e0e7ff; --taken: #fca5a5; --mine: #86efac; --bd: #d1d5db; }
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--tx); padding: 12px; }
-header { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 12px; }
-.card { background: var(--card); border-radius: 12px; padding: 16px; max-width: 1000px; margin: 0 auto 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-.f { flex: 1; min-width: 120px; }
-label { font-size: 0.85rem; color: var(--mut); display: block; margin-bottom: 4px; }
-input { width: 100%; padding: 8px 10px; border: 1px solid var(--bd); border-radius: 8px; font: inherit; }
-button { font: inherit; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--pri); color: #fff; cursor: pointer; }
-button.g { background: #e5e7eb; color: var(--tx); }
-.room { overflow-x: auto; padding-bottom: 8px; }
-.front { text-align: center; background: #374151; color: #fff; border-radius: 8px; padding: 8px; margin: 0 auto 16px; max-width: 300px; font-weight: 600; }
-.zones { display: flex; gap: 20px; justify-content: center; min-width: 680px; }
-.zone h3 { text-align: center; font-size: 0.95rem; margin: 0 0 8px; color: var(--mut); }
-.grid { display: grid; gap: 6px; }
-.zone.L .grid { grid-template-columns: repeat(2, 74px); }
-.zone.C .grid, .zone.W .grid { grid-template-columns: repeat(3, 74px); }
-.seat { width: 74px; height: 64px; border: 2px solid #a5b4fc; background: var(--free); border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 0.75rem; cursor: pointer; }
-.seat b { font-size: 0.9rem; color: var(--mut); }
-.seat.taken { background: var(--taken); border-color: #ef4444; }
-.seat.mine { background: var(--mine); border-color: #16a34a; }
-.legend { display: flex; gap: 12px; font-size: 0.85rem; align-items: center; }
-.legend span { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle; }
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1f2937;--mut:#6b7280;--pri:#4f46e5;--free:#e0e7ff;--taken:#fca5a5;--mine:#86efac;--hit:#fde047;--bd:#d1d5db}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Sarabun',Tahoma,sans-serif;background:var(--bg);color:var(--tx);padding:12px}
+h1{margin:0;font-size:1.4rem}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;max-width:1000px;margin:0 auto 12px}
+.card{background:var(--card);border-radius:12px;padding:14px;max-width:1000px;margin:0 auto 12px;box-shadow:0 1px 4px #0001}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+label{font-size:.85rem;color:var(--mut);display:block;margin-bottom:2px}
+input{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font:inherit;width:100%}
+.f{flex:1;min-width:130px}
+button{font:inherit;padding:8px 14px;border:0;border-radius:8px;background:var(--pri);color:#fff;cursor:pointer}
+button.g{background:#e5e7eb;color:var(--tx)}button.r{background:#dc2626}
+.legend span{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:middle;margin:0 4px 0 10px}
+.room{overflow-x:auto}
+.front{text-align:center;background:#374151;color:#fff;border-radius:8px;padding:6px;margin:0 auto 12px;max-width:300px}
+.zones{display:flex;gap:22px;justify-content:center;min-width:660px}
+.zone h3{text-align:center;font-size:.95rem;margin:0 0 6px}
+.grid{display:grid;gap:6px}
+.seat{width:74px;height:64px;border:2px solid #a5b4fc;background:var(--free);border-radius:8px;font:inherit;color:var(--tx);padding:2px;font-size:.75rem;line-height:1.15;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden}
+.seat b{font-size:.85rem;color:var(--mut)}.seat .nm{font-weight:600;font-size:.8rem;max-width:100%;word-break:break-all}
+.seat.taken{background:var(--taken);border-color:#ef4444;cursor:not-allowed}
+.seat.mine{background:var(--mine);border-color:#16a34a}
+.seat.hit{outline:4px solid var(--hit)}
+.zone.L .grid{grid-template-columns:repeat(2,74px);column-gap:0}
+.zone.L .seat:nth-child(odd){border-radius:8px 0 0 8px;border-right-width:1px}
+.zone.L .seat:nth-child(even){border-radius:0 8px 8px 0;border-left-width:1px}
+.zone.C .grid,.zone.W .grid{grid-template-columns:repeat(3,74px)}
+.overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:12px;z-index:9}
+.overlay.on{display:flex}
+.modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:400px;max-height:90vh;overflow:auto}
+.receipt{border:2px dashed var(--pri);border-radius:10px;padding:14px;margin:10px 0}
+.receipt div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{border-bottom:1px solid var(--bd);padding:6px;text-align:left}
+.msg{color:#dc2626;font-size:.9rem;min-height:1.2em;margin-top:6px}
+h4{margin:14px 0 6px}.tag{padding:2px 8px;border-radius:99px;font-size:.78rem;color:#fff}.tag.p{background:#f59e0b}.tag.a{background:#16a34a}.tag.x{background:#dc2626}
+button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
+@media print{body *{visibility:hidden}#rc,#rc *{visibility:visible}#rc{position:absolute;left:0;top:0;width:100%}}
 </style>
 </head>
 <body>
-
 <header>
-  <h1 style="font-size: 1.3rem; margin: 0;">🪑 จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</h1>
-  <button class="g" onclick="alert('แผงผู้ดูแล')">🔐 ผู้ดูแลระบบ</button>
+  <h1>🪑 จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</h1>
+  <span id="conn" style="font-size:.85rem;color:var(--mut)">⏳ กำลังเชื่อมต่อ...</span><button class="g" onclick="openAdmin()" id="adminBtn">🔐 ผู้ดูแลระบบ</button>
 </header>
 
 <div class="card">
   <div class="row">
-    <div class="f"><label>ชื่อเล่น</label><input id="nick" placeholder="เช่น ฟ้า"></div>
-    <div class="f"><label>เลขที่</label><input id="no" type="number" placeholder="เช่น 12"></div>
+    <div class="f"><label>ชื่อเล่น</label><input id="nick" placeholder="เช่น ฟ้า" maxlength="30"></div>
+    <div class="f"><label>เลขที่</label><input id="no" type="number" min="1" max="40" placeholder="เช่น 12"></div>
   </div>
+  <div class="msg" id="msg">กรอกชื่อเล่นและเลขที่ แล้วเลือกโต๊ะที่ต้องการ</div>
+  <div class="row" style="margin-top:8px"><button class="g" onclick="openReq()">🔁 ขอย้าย/สลับที่</button><button class="g" onclick="myReceipt()">🧾 ดูใบหลักฐานของฉัน</button></div>
+  <p style="font-size:.8rem;color:var(--mut);margin:6px 0 0">💡 ถ้าจองแล้ว แค่กดที่โต๊ะอื่น (ว่าง = ขอย้าย, มีคนนั่ง = ขอสลับ) ระบบจะส่งคำขอให้ผู้ดูแลอนุมัติ</p>
 </div>
 
 <div class="card">
-  <div class="row" style="margin-bottom: 12px; justify-content: space-between;">
-    <div class="legend">
-      <div><span style="background:var(--free)"></span> ว่าง</div>
-      <div><span style="background:var(--taken)"></span> ถูกจอง</div>
-      <div><span style="background:var(--mine)"></span> โต๊ะของฉัน</div>
-    </div>
+  <div class="row" style="margin-bottom:8px">
+    <div class="f"><label>🔎 ค้นหา/กรอง (ชื่อเล่น หรือ เลขที่)</label><input id="q" placeholder="พิมพ์เพื่อไฮไลต์โต๊ะของคนนั้น"></div>
+    <div class="legend"><span style="background:var(--free)"></span>ว่าง<span style="background:var(--taken)"></span>ถูกจอง<span style="background:var(--mine)"></span>โต๊ะของฉัน<span style="background:var(--hit)"></span>ผลค้นหา</div>
   </div>
-
   <div class="room">
     <div class="front">🧑‍🏫 หน้าห้อง / โต๊ะครู / กระดาน</div>
     <div class="zones" id="zones"></div>
   </div>
+  <p style="text-align:center;color:var(--mut);margin:8px 0 0" id="count"></p>
 </div>
 
+<div class="card" id="listCard">
+  <b>รายชื่อผู้จอง (ตามที่ค้นหา)</b>
+  <div style="overflow-x:auto"><table><thead><tr><th>โต๊ะ</th><th>ชื่อเล่น</th><th>เลขที่</th><th>เวลา</th></tr></thead><tbody id="list"></tbody></table></div>
+</div>
+
+<div class="card">
+  <b>📨 คำขอย้าย/สลับที่</b>
+  <div style="overflow-x:auto"><table><thead><tr><th>ผู้ขอ</th><th>ประเภท</th><th>โต๊ะ</th><th>สถานะ</th></tr></thead><tbody id="reqList"></tbody></table></div>
+</div>
+
+<!-- Receipt -->
+<div class="overlay" id="ovR"><div class="modal">
+  <h2 style="margin:0">✅ จองสำเร็จ</h2>
+  <div class="receipt" id="rc"></div>
+  <div class="row"><button onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button><button class="g" onclick="closeAll()">ปิด</button></div>
+</div></div>
+
+<!-- Request move/swap -->
+<div class="overlay" id="ovQ"><div class="modal">
+  <h3 style="margin-top:0">🔁 ขอย้าย/สลับที่</h3>
+  <p id="qInfo"></p>
+  <label>โต๊ะที่ต้องการไป (1-40)</label><input id="qTo" type="number" min="1" max="40" oninput="updQ()">
+  <p id="qPrev" style="color:var(--pri);min-height:1.3em;margin:6px 0"></p>
+  <label>เหตุผล (ไม่บังคับ)</label><input id="qNote" maxlength="100">
+  <div class="msg" id="qMsg"></div>
+  <div class="row"><button onclick="sendReq()">ส่งคำขอ</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
+  <p style="font-size:.8rem;color:var(--mut)">ถ้าโต๊ะปลายทางมีคนนั่ง คำขอจะเป็น "สลับที่" กับคนนั้น และเปลี่ยนจริงเมื่อผู้ดูแลอนุมัติ</p>
+</div></div>
+
+<!-- Confirm -->
+<div class="overlay" id="ovC"><div class="modal">
+  <h3 style="margin-top:0">ยืนยันการจอง</h3>
+  <p id="cTxt"></p>
+  <div class="row"><button onclick="confirmBook()">ยืนยัน</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
+</div></div>
+
+<!-- Admin -->
+<div class="overlay" id="ovA"><div class="modal" style="max-width:640px">
+  <div id="aLogin">
+    <h3 style="margin-top:0">เข้าสู่ระบบผู้ดูแล</h3>
+    <label>ชื่อผู้ใช้</label><input id="au" autocomplete="off">
+    <label style="margin-top:8px">รหัสผ่าน</label><input id="ap" type="password" autocomplete="off">
+    <div class="msg" id="aMsg"></div>
+    <div class="row"><button onclick="login()">เข้าสู่ระบบ</button><button class="g" onclick="closeAll()">ปิด</button></div>
+  </div>
+  <div id="aPanel" style="display:none">
+    <h3 style="margin-top:0">🛠️ แผงผู้ดูแล (focus2013)</h3>
+    <div class="row" style="margin-bottom:8px">
+      <button onclick="exportCSV()">⬇️ ส่งออก CSV</button>
+      <button class="r" onclick="clearAll()">ล้างการจองทั้งหมด</button>
+      <button class="g" onclick="logout()">ออกจากระบบ</button>
+    </div>
+    <h4>📨 คำขอที่รออนุมัติ</h4>
+    <div style="overflow-x:auto"><table><thead><tr><th>ผู้ขอ</th><th>ประเภท</th><th>โต๊ะ</th><th>เหตุผล</th><th></th></tr></thead><tbody id="aReq"></tbody></table></div>
+    <h4>↔️ ย้าย/สลับที่โดยผู้ดูแล</h4>
+    <div class="row"><div class="f"><label>โต๊ะต้นทาง</label><input id="mvA" type="number" min="1" max="40"></div><div class="f"><label>โต๊ะปลายทาง</label><input id="mvB" type="number" min="1" max="40"></div><button onclick="adminMove()">ย้าย/สลับ</button></div>
+    <div class="msg" id="mvMsg">ปลายทางว่าง = ย้าย, มีคนนั่ง = สลับกัน</div>
+    <h4>รายชื่อการจอง</h4>
+    <div style="overflow-x:auto"><table><thead><tr><th>โต๊ะ</th><th>ชื่อเล่น</th><th>เลขที่</th><th>เวลา</th><th></th></tr></thead><tbody id="aList"></tbody></table></div>
+  </div>
+</div></div>
+
+<!-- Custom confirm (แทน confirm/alert ของเบราว์เซอร์ ซึ่งอาจถูกบล็อก) -->
+<div class="overlay" id="ovK" style="z-index:20"><div class="modal">
+  <p id="kTxt" style="font-size:1.05rem;margin-top:0"></p>
+  <div class="row"><button id="kYes">ตกลง</button><button class="g" id="kNo">ยกเลิก</button></div>
+</div></div>
+
 <script>
-// โครงสร้างโซนโต๊ะเรียน (40 โต๊ะ)
-const ZONES = [
-  { k: 'L', n: 'โซนซ้าย (นั่งคู่)', c: 2 },
-  { k: 'C', n: 'โซนกลาง', c: 3 },
-  { k: 'W', n: 'โซนหน้าต่าง', c: 3 }
-];
-const ROWS = 5;
+const $=s=>document.getElementById(s);
+function ask(text,cb){
+  $('kTxt').textContent=text;
+  const done=()=>$('ovK').classList.remove('on');
+  $('kYes').onclick=()=>{done();if(cb)cb()};
+  $('kNo').onclick=done;
+  $('kNo').style.display=cb?'':'none';
+  $('ovK').classList.add('on');
+}
+const KEY='seatBooking_m2_1_t2';
+const ZONES=[{k:'L',n:'โซนซ้าย (นั่งคู่)',c:2},{k:'C',n:'โซนกลาง',c:3},{k:'W',n:'โซนหน้าต่าง',c:3}];
+const ROWS=5;
+let seats=[],id=1;
+ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
 
-// สร้างปุ่มโต๊ะทันทีเมื่อหน้าเว็บโหลด
-function buildSeats() {
-  const container = document.getElementById('zones');
-  container.innerHTML = '';
-  let id = 1;
+let data={},pending=null,isAdmin=false;
+const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
+let db=null;
+function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error('load '+u));document.head.appendChild(e)})}
+async function loadFB(){ // ลองโหลด SDK จากหลายแหล่ง เผื่อแหล่งใดแหล่งหนึ่งถูกบล็อก
+  const bases=['https://www.gstatic.com/firebasejs/10.12.2/','https://cdn.jsdelivr.net/npm/firebase@10.12.2/'];
+  for(const b of bases){
+    try{delete window.firebase;await loadScript(b+'firebase-app-compat.js');await loadScript(b+'firebase-database-compat.js');if(window.firebase)return}catch(e){console.warn(e)}
+  }
+  throw new Error('ไม่สามารถโหลด Firebase SDK ได้');
+}
+const sk=i=>'s'+i; // คีย์ขึ้นต้นด้วย s เพื่อไม่ให้ Firebase แปลงเป็น array
+const fbErr=e=>ask('ทำรายการไม่สำเร็จ (ตรวจสอบเน็ต/กฎของฐานข้อมูล): '+((e&&e.message)||e));
+const desc=s=>`${s.zn} แถว ${s.r} ที่ ${s.c}`;
+const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function stamp(d){const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()+543} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`}
+function byNo(n){return Object.values(data).find(b=>String(b.no)===String(n))}
+function setMsg(t,ok){$('msg').textContent=t;$('msg').style.color=ok?'#16a34a':'#dc2626'}
 
-  ZONES.forEach(z => {
-    const zoneDiv = document.createElement('div');
-    zoneDiv.className = 'zone ' + z.k;
-    zoneDiv.innerHTML = `<h3>${z.n}</h3><div class="grid"></div>`;
-    const grid = zoneDiv.querySelector('.grid');
+function render(){
+  const no=$('no').value.trim(), q=$('q').value.trim().toLowerCase();
+  $('zones').innerHTML='';
+  ZONES.forEach(z=>{
+    const d=document.createElement('div');d.className='zone '+z.k;
+    d.innerHTML=`<h3>${z.n}</h3><div class="grid"></div>`;
+    const g=d.querySelector('.grid');
+    seats.filter(s=>s.z===z.k).forEach(s=>{
+      const b=data[s.id],el=document.createElement('button');
+      el.className='seat'+(b?' taken':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
+      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:`<span>ว่าง</span>`);
+      el.title=desc(s)+(b?` — ${b.nick} (เลขที่ ${b.no})`:'');
+      el.onclick=()=>pick(s);
+      g.appendChild(el);
+    });
+    $('zones').appendChild(d);
+  });
+  $('count').textContent=`จองแล้ว ${Object.keys(data).length} / ${seats.length} โต๊ะ • ว่าง ${seats.length-Object.keys(data).length} โต๊ะ`;
+  const rows=Object.entries(data).sort((a,b)=>a[0]-b[0]).filter(([_,b])=>!q||b.nick.toLowerCase().includes(q)||String(b.no)===q);
+  $('list').innerHTML=rows.map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ไม่พบข้อมูล</td></tr>';
+  const st={pending:['p','รออนุมัติ'],approved:['a','อนุมัติแล้ว'],rejected:['x','ไม่อนุมัติ']};
+  $('reqList').innerHTML=reqs.slice().reverse().filter(r=>!q||r.nick.toLowerCase().includes(q)||String(r.no)===q).map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีคำขอ</td></tr>';
+  if(isAdmin)renderAdmin();
+}
 
-    for (let r = 1; r <= ROWS; r++) {
-      for (let c = 1; c <= z.c; c++) {
-        const seatId = id++;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'seat';
-        btn.innerHTML = `<b>${seatId}</b><span>ว่าง</span>`;
-        btn.onclick = () => alert(`เลือกโต๊ะที่ ${seatId}`);
-        grid.appendChild(btn);
-      }
-    }
-    container.appendChild(zoneDiv);
+function pick(s){
+  const nick=$('nick').value.trim(),no=$('no').value.trim();
+  const me=nick&&no?mySeat(nick,no):null;
+  if(me){if(me.seat===s.id)return setMsg('นี่คือโต๊ะของคุณอยู่แล้ว',true);return openReq(s.id)}
+  if(data[s.id])return setMsg(`โต๊ะ ${s.id} ถูกจองแล้วโดย ${data[s.id].nick}`);
+  if(!nick||!no||+no<1||+no>40)return setMsg('กรุณากรอกชื่อเล่นและเลขที่ (1-40) ให้ถูกต้องก่อน');
+  const ex=byNo(no);
+  if(ex)return setMsg(`เลขที่ ${no} จองไปแล้ว (โต๊ะ ${ex.seat}) หากเป็นของคุณ ให้กรอกชื่อเล่นให้ตรงกับตอนจองเพื่อขอย้าย/สลับที่`);
+  pending={s,nick,no};
+  $('cTxt').innerHTML=`ชื่อเล่น <b>${esc(nick)}</b> เลขที่ <b>${esc(no)}</b><br>ต้องการจอง <b>โต๊ะ ${s.id}</b> (${desc(s)}) ใช่หรือไม่?`;
+  $('ovC').classList.add('on');
+}
+function confirmBook(){
+  const {s,nick,no}=pending;
+  if(!db){closeAll();return setMsg('เชื่อมต่อฐานข้อมูลไม่ได้ ลองรีเฟรชหน้า')}
+  if(data[s.id]||byNo(no)){closeAll();return setMsg('โต๊ะนี้หรือเลขที่นี้ถูกใช้ไปแล้ว')}
+  const b={nick,no:+no,seat:s.id,desc:desc(s),time:stamp(new Date())};
+  db.ref('seats/'+sk(s.id)).transaction(cur=>cur===null?b:undefined,(err,ok)=>{
+    closeAll();
+    if(err||!ok)return setMsg('โต๊ะนี้ถูกจองไปแล้ว หรือบันทึกไม่สำเร็จ');
+    showReceipt(b);setMsg('จองสำเร็จ!',true);
+  });
+}
+function showReceipt(b){
+  $('rc').innerHTML=`<div style="justify-content:center;font-weight:700;border:0">ใบหลักฐานการจองโต๊ะ<br>ห้อง ม.2/1 เทอม 2</div>
+  <div><span>ชื่อเล่น</span><b>${esc(b.nick)}</b></div>
+  <div><span>เลขที่</span><b>${b.no}</b></div>
+  <div><span>โต๊ะที่จอง</span><b>โต๊ะ ${b.seat}</b></div>
+  <div><span>ตำแหน่ง</span><b>${esc(b.desc)}</b></div>
+  <div><span>เวลาที่จอง</span><b>${b.time}</b></div>${b.upd?`<div style="border:0"><span>ย้าย/สลับล่าสุด</span><b>${b.upd}</b></div>`:""}`;
+  $('ovR').classList.add('on');
+}
+function closeAll(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'))}
+
+// Admin
+function openAdmin(){$('ovA').classList.add('on');$('aLogin').style.display=isAdmin?'none':'';$('aPanel').style.display=isAdmin?'':'none';if(isAdmin)renderAdmin()}
+function login(){
+  if($('au').value.trim()==='focus2013'&&$('ap').value==='ihavecpu'){
+    isAdmin=true;$('aMsg').textContent='';$('au').value=$('ap').value='';openAdmin();
+  }else $('aMsg').textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+}
+function logout(){isAdmin=false;closeAll()}
+function renderAdmin(){
+  renderAdminReq();
+  $('aList').innerHTML=Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td><td><button class="r" onclick="cancelSeat(${i})">ยกเลิก</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--mut)">ยังไม่มีการจอง</td></tr>';
+}
+function cancelSeat(i){if(!isAdmin)return;ask(`ยกเลิกการจองโต๊ะ ${i} ของ ${data[i].nick}?`,()=>{db.ref('seats/'+sk(i)).remove().catch(fbErr)})}
+function clearAll(){if(!isAdmin)return;ask('ล้างการจองและคำขอทั้งหมด? ย้อนกลับไม่ได้',()=>{db.ref().update({seats:null,reqs:null}).catch(fbErr)})}
+function exportCSV(){
+  const rows=[['โต๊ะ','ชื่อเล่น','เลขที่','ตำแหน่ง','เวลา']].concat(Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>[i,b.nick,b.no,b.desc,b.time]));
+  const csv='\ufeff'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='รายชื่อจองโต๊ะ.csv';a.click();
+}
+
+// ---- ย้าย/สลับที่ ----
+let reqs=[];
+function mySeat(nick,no){const b=byNo(no);return b&&b.nick.trim().toLowerCase()===nick.trim().toLowerCase()?b:null}
+function myReceipt(){const me=mySeat($('nick').value,$('no').value);if(!me)return setMsg('ไม่พบการจอง (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง)');showReceipt(me)}
+function openReq(target){
+  const nick=$('nick').value.trim(),no=$('no').value.trim();
+  if(!nick||!no)return setMsg('กรอกชื่อเล่นและเลขที่ก่อนขอย้าย/สลับที่');
+  const me=mySeat(nick,no);
+  if(!me)return setMsg('ไม่พบการจองของคุณ (ชื่อเล่นและเลขที่ต้องตรงกับตอนจอง) ต้องจองก่อนจึงขอย้ายได้');
+  $('qInfo').innerHTML=`คุณ <b>${esc(me.nick)}</b> เลขที่ ${me.no} นั่งโต๊ะ <b>${me.seat}</b> (${esc(me.desc)})`;
+  $('qTo').value=target||'';$('qNote').value='';$('qMsg').textContent='';updQ();
+  $('ovQ').classList.add('on');
+}
+function updQ(){
+  const t=+$('qTo').value,o=data[t];
+  $('qPrev').textContent=!(t>=1&&t<=40)?'':!o?`โต๊ะ ${t} ว่าง → ส่งคำขอ "ย้ายที่"`:`โต๊ะ ${t} มี ${o.nick} (เลขที่ ${o.no}) → ส่งคำขอ "สลับที่"`;
+}
+function sendReq(){
+  const me=mySeat($('nick').value,$('no').value),t=+$('qTo').value,m=$('qMsg');
+  if(!me)return m.textContent='ไม่พบการจองของคุณ';
+  if(!(t>=1&&t<=40))return m.textContent='ระบุโต๊ะ 1-40';
+  if(t===me.seat)return m.textContent='นี่คือโต๊ะของคุณอยู่แล้ว';
+  if(reqs.some(r=>r.status==='pending'&&r.no===me.no))return m.textContent='คุณมีคำขอที่รออนุมัติอยู่แล้ว';
+  const o=data[t];
+  if(!db)return m.textContent='เชื่อมต่อฐานข้อมูลไม่ได้';
+  const id=Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  db.ref('reqs/'+id).set({id,type:o?'swap':'move',no:me.no,nick:me.nick,from:me.seat,to:t,withNo:o?o.no:null,withNick:o?o.nick:null,note:$('qNote').value.trim(),time:stamp(new Date()),status:'pending'}).then(()=>{closeAll();setMsg('ส่งคำขอแล้ว รอผู้ดูแลอนุมัติ',true)}).catch(e=>{m.textContent='ส่งไม่สำเร็จ: '+e.message});
+}
+function doMove(a,b){
+  const x=data[a],y=data[b];if(!x||a===b)return Promise.resolve(false);
+  const t=stamp(new Date()),u={};
+  const mk=(v,i)=>Object.assign({},v,{seat:+i,desc:desc(seats[i-1]),upd:t});
+  u['seats/'+sk(b)]=mk(x,b);
+  u['seats/'+sk(a)]=y?mk(y,a):null;
+  return db.ref().update(u).then(()=>true);
+}
+function renderAdminReq(){
+  $('aReq').innerHTML=reqs.filter(r=>r.status==='pending').map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td>${esc(r.note||'-')}</td><td style="white-space:nowrap"><button class="sm" onclick="decide('${r.id}',true)">อนุมัติ</button><button class="sm r" onclick="decide('${r.id}',false)">ปฏิเสธ</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--mut)">ไม่มีคำขอที่รออนุมัติ</td></tr>';
+}
+function decide(rid,ok){
+  if(!isAdmin)return;
+  const r=reqs.find(x=>x.id===rid);if(!r)return;
+  const set=st=>db.ref('reqs/'+rid+'/status').set(st).catch(fbErr);
+  if(!ok)return set('rejected');
+  const x=data[r.from],y=data[r.to];
+  if(x&&x.no===r.no&&(r.type==='move'?!y:(y&&y.no===r.withNo)))doMove(r.from,r.to).then(()=>set('approved')).catch(fbErr);
+  else{ask('ที่นั่งมีการเปลี่ยนแปลงแล้ว คำขอนี้ใช้ไม่ได้ จึงตั้งเป็น "ไม่อนุมัติ"');set('rejected')}
+}
+function adminMove(){
+  if(!isAdmin)return;
+  const a=+$('mvA').value,b=+$('mvB').value,m=$('mvMsg');m.style.color='#dc2626';
+  if(!(a>=1&&a<=40&&b>=1&&b<=40)||a===b)return m.textContent='ระบุโต๊ะ 1-40 สองโต๊ะที่ไม่ซ้ำกัน';
+  if(!data[a])return m.textContent=`โต๊ะ ${a} ยังไม่มีคนจอง`;
+  const sw=!!data[b];
+  ask(sw?`สลับที่ ${data[a].nick} (โต๊ะ ${a}) กับ ${data[b].nick} (โต๊ะ ${b})?`:`ย้าย ${data[a].nick} จากโต๊ะ ${a} ไปโต๊ะ ${b}?`,()=>{
+    doMove(a,b).then(()=>{m.style.color='#16a34a';m.textContent=sw?'สลับที่เรียบร้อย':'ย้ายที่เรียบร้อย'}).catch(fbErr);
   });
 }
 
-// เรียกรันการสร้างโต๊ะทันที
-buildSeats();
+['no','nick','q'].forEach(i=>$(i).addEventListener('input',render));
+function startDB(){
+  try{firebase.initializeApp(FB);db=firebase.database()}catch(e){console.error(e);$('conn').textContent='⚠️ เชื่อมต่อฐานข้อมูลไม่ได้';return}
+  db.ref('seats').on('value',snap=>{const v=snap.val()||{};data={};Object.keys(v).forEach(k=>data[k.slice(1)]=v[k]);render()},fbErr);
+  db.ref('reqs').on('value',snap=>{reqs=Object.values(snap.val()||{}).sort((a,b)=>a.id<b.id?-1:1);render()},fbErr);
+  db.ref('.info/connected').on('value',x=>{$('conn').textContent=x.val()?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'🔴 ออฟไลน์'});
+}
+loadFB().then(startDB).catch(e=>{console.error(e);$('conn').textContent='⚠️ โหลดระบบฐานข้อมูลไม่ได้ (เช็กอินเทอร์เน็ต หรือปิดตัวบล็อกโฆษณา)'});
+render();
 </script>
 </body>
 </html>
