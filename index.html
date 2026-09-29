@@ -19,12 +19,12 @@ input{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;font:inherit
 button{font:inherit;padding:8px 14px;border:0;border-radius:8px;background:var(--pri);color:#fff;cursor:pointer}
 button.g{background:#e5e7eb;color:var(--tx)}button.r{background:#dc2626}
 .legend span{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:middle;margin:0 4px 0 10px}
-.room{overflow-x:auto}
+.room{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .front{text-align:center;background:#374151;color:#fff;border-radius:8px;padding:6px;margin:0 auto 12px;max-width:300px}
 .zones{display:flex;gap:22px;justify-content:center;min-width:660px}
 .zone h3{text-align:center;font-size:.95rem;margin:0 0 6px}
 .grid{display:grid;gap:6px}
-.seat{width:74px;height:64px;border:2px solid #a5b4fc;background:var(--free);border-radius:8px;font:inherit;color:var(--tx);padding:2px;font-size:.75rem;line-height:1.15;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:pointer}
+.seat{width:74px;height:64px;border:2px solid #a5b4fc;background:var(--free);border-radius:8px;font:inherit;color:var(--tx);padding:2px;font-size:.75rem;line-height:1.15;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .seat b{font-size:.85rem;color:var(--mut)}.seat .nm{font-weight:600;font-size:.8rem;max-width:100%;word-break:break-all}
 .seat.taken{background:var(--taken);border-color:#ef4444;cursor:not-allowed}
 .seat.mine{background:var(--mine);border-color:#16a34a}
@@ -33,7 +33,7 @@ button.g{background:#e5e7eb;color:var(--tx)}button.r{background:#dc2626}
 .zone.L .seat:nth-child(odd){border-radius:8px 0 0 8px;border-right-width:1px}
 .zone.L .seat:nth-child(even){border-radius:0 8px 8px 0;border-left-width:1px}
 .zone.C .grid,.zone.W .grid{grid-template-columns:repeat(3,74px)}
-.overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:12px;z-index:9}
+.overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:12px;z-index:99}
 .overlay.on{display:flex}
 .modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:400px;max-height:90vh;overflow:auto}
 .receipt{border:2px dashed var(--pri);border-radius:10px;padding:14px;margin:10px 0}
@@ -104,7 +104,6 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <label>เหตุผล (ไม่บังคับ)</label><input id="qNote" maxlength="100">
   <div class="msg" id="qMsg"></div>
   <div class="row"><button onclick="sendReq()">ส่งคำขอ</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
-  <p style="font-size:.8rem;color:var(--mut)">ถ้าโต๊ะปลายทางมีคนนั่ง คำขอจะเป็น "สลับที่" กับคนนั้น และเปลี่ยนจริงเมื่อผู้ดูแลอนุมัติ</p>
 </div></div>
 
 <!-- Confirm -->
@@ -114,7 +113,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <div class="row"><button onclick="confirmBook()">ยืนยัน</button><button class="g" onclick="closeAll()">ยกเลิก</button></div>
 </div></div>
 
-<!-- Admin -->
+<!-- Admin Panel -->
 <div class="overlay" id="ovA"><div class="modal" style="max-width:640px">
   <div id="aLogin">
     <h3 style="margin-top:0">เข้าสู่ระบบผู้ดูแล</h3>
@@ -140,8 +139,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   </div>
 </div></div>
 
-<!-- Custom confirm -->
-<div class="overlay" id="ovK" style="z-index:20"><div class="modal">
+<div class="overlay" id="ovK" style="z-index:120"><div class="modal">
   <p id="kTxt" style="font-size:1.05rem;margin-top:0"></p>
   <div class="row"><button id="kYes">ตกลง</button><button class="g" id="kNo">ยกเลิก</button></div>
 </div></div>
@@ -158,13 +156,18 @@ const firebaseConfig = {
   measurementId: "G-QVRBTEMFH7"
 };
 
+const ZONES=[{k:'L',n:'โซนซ้าย (นั่งคู่)',c:2},{k:'C',n:'โซนกลาง',c:3},{k:'W',n:'โซนหน้าต่าง',c:3}];
+const ROWS=5;
+let seats=[];
+function initSeats(){
+  seats=[];
+  let id=1;
+  ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
+}
+initSeats();
+
 let db = null;
-try {
-  if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-  }
-} catch(e) { console.warn("Firebase Init Error", e); }
+let data={}, reqs=[], pending=null, isAdmin=false;
 
 const $=s=>document.getElementById(s);
 function ask(text,cb){
@@ -174,73 +177,39 @@ function ask(text,cb){
   $('kNo').style.display=cb?'':'none';$('ovK').classList.add('on');
 }
 
-const ZONES=[{k:'L',n:'โซนซ้าย (นั่งคู่)',c:2},{k:'C',n:'โซนกลาง',c:3},{k:'W',n:'โซนหน้าต่าง',c:3}];
-const ROWS=5;
-let seats=[],id=1;
-ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
-
-let data={}, reqs=[], pending=null, isAdmin=false;
-
-function initFirebaseListeners(){
-  if(!db) return;
-  db.ref('seatsData').on('value', snapshot => {
-    data = snapshot.val() || {};
-    render();
-  });
-
-  db.ref('requestsData').on('value', snapshot => {
-    const rawObj = snapshot.val() || {};
-    reqs = Object.values(rawObj);
-    render();
-  });
-}
-
-function saveData(){ if(db) db.ref('seatsData').set(data); }
-function saveReqs(){ 
-  if(db) {
-    const reqObj = {};
-    reqs.forEach(r => { reqObj[r.id] = r; });
-    db.ref('requestsData').set(reqObj); 
-  }
-}
-
 const desc=s=>`${s.zn} แถว ${s.r} ที่ ${s.c}`;
 const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function stamp(d){const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()+543} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`}
 function byNo(n){return Object.values(data).find(b=>String(b.no)===String(n))}
-function setMsg(t,ok){
-  const el=$('msg');
-  if(el){
-    el.textContent=t;
-    el.style.color=ok?'#16a34a':'#dc2626';
-  }
-}
+function setMsg(t,ok){$('msg').textContent=t;$('msg').style.color=ok?'#16a34a':'#dc2626'}
 
 function render(){
-  const zEl = $('zones');
-  if(!zEl) return;
-  
-  const no=$('no').value.trim(), q=$('q').value.trim().toLowerCase();
-  zEl.innerHTML='';
+  if(!seats || seats.length === 0) initSeats();
+  const zonesEl = $('zones');
+  if(!zonesEl) return;
+
+  const no=($('no')?$('no').value:'').trim(), q=($('q')?$('q').value:'').trim().toLowerCase();
+  zonesEl.innerHTML='';
   ZONES.forEach(z=>{
     const d=document.createElement('div');d.className='zone '+z.k;
     d.innerHTML=`<h3>${z.n}</h3><div class="grid"></div>`;
     const g=d.querySelector('.grid');
     seats.filter(s=>s.z===z.k).forEach(s=>{
       const b=data[s.id],el=document.createElement('button');
+      el.type='button';
       el.className='seat'+(b?' taken':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
       el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:`<span>ว่าง</span>`);
       el.title=desc(s)+(b?` — ${b.nick} (เลขที่ ${b.no})`:'');
       el.onclick=()=>pick(s);
       g.appendChild(el);
     });
-    zEl.appendChild(d);
+    zonesEl.appendChild(d);
   });
-  $('count').textContent=`จองแล้ว ${Object.keys(data).length} / ${seats.length} โต๊ะ • ว่าง ${seats.length-Object.keys(data).length} โต๊ะ`;
+  if($('count'))$('count').textContent=`จองแล้ว ${Object.keys(data).length} / ${seats.length} โต๊ะ • ว่าง ${seats.length-Object.keys(data).length} โต๊ะ`;
   const rows=Object.entries(data).sort((a,b)=>a[0]-b[0]).filter(([_,b])=>!q||b.nick.toLowerCase().includes(q)||String(b.no)===q);
-  $('list').innerHTML=rows.map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ไม่พบข้อมูล</td></tr>';
+  if($('list'))$('list').innerHTML=rows.map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ไม่พบข้อมูล</td></tr>';
   const st={pending:['p','รออนุมัติ'],approved:['a','อนุมัติแล้ว'],rejected:['x','ไม่อนุมัติ']};
-  $('reqList').innerHTML=reqs.slice().reverse().filter(r=>!q||r.nick.toLowerCase().includes(q)||String(r.no)===q).map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีคำขอ</td></tr>';
+  if($('reqList'))$('reqList').innerHTML=reqs.slice().reverse().filter(r=>!q||r.nick.toLowerCase().includes(q)||String(r.no)===q).map(r=>`<tr><td>${esc(r.nick)} (${r.no})</td><td>${r.type==='swap'?'สลับที่':'ย้ายที่'}</td><td>${r.from} → ${r.to}${r.withNick?' ('+esc(r.withNick)+')':''}</td><td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีคำขอ</td></tr>';
   if(isAdmin)renderAdmin();
 }
 
@@ -320,6 +289,14 @@ function sendReq(){
   saveReqs();closeAll();setMsg('ส่งคำขอแล้ว รอผู้ดูแลอนุมัติ',true);
   render();
 }
+function saveData(){ if(db) db.ref('seatsData').set(data); }
+function saveReqs(){ 
+  if(db) {
+    const reqObj = {};
+    reqs.forEach(r => { reqObj[r.id] = r; });
+    db.ref('requestsData').set(reqObj); 
+  }
+}
 function doMove(a,b){
   const x=data[a],y=data[b];if(!x||a===b)return false;
   if(y){data[a]=y;data[b]=x}else{data[b]=x;delete data[a]}
@@ -352,14 +329,32 @@ function adminMove(){
   });
 }
 
-// โหลดข้อมูลและสร้างผังเมื่อ DOM พร้อม
-document.addEventListener('DOMContentLoaded', () => {
-  ['no','nick','q'].forEach(i=>{
-    const el=$(i);
-    if(el) el.addEventListener('input',render);
-  });
+// Event Listeners
+['no','nick','q'].forEach(i=>{
+  const el = $(i);
+  if(el) el.addEventListener('input',render);
+});
+
+// Init Firebase
+window.addEventListener('DOMContentLoaded', () => {
   render();
-  initFirebaseListeners();
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      db.ref('seatsData').on('value', snapshot => {
+        data = snapshot.val() || {};
+        render();
+      });
+      db.ref('requestsData').on('value', snapshot => {
+        const rawObj = snapshot.val() || {};
+        reqs = Object.values(rawObj);
+        render();
+      });
+    }
+  } catch(e) {
+    console.warn("Firebase error fallback to local", e);
+  }
 });
 </script>
 </body>
