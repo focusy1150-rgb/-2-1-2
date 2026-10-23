@@ -397,9 +397,7 @@ function startDB(){
   db.ref('config/openAt').on('value',x=>{openAt=x.val()||0;render();tickBar();processPre()},fbErr);
   db.ref('prebook').on('value',x=>{pre=x.val()||{};render();processPre()},fbErr);
   db.ref('reqs').on('value',snap=>{reqs=Object.values(snap.val()||{}).sort((a,b)=>a.id<b.id?-1:1);render()},fbErr);
-  db.ref('.info/connected').on('value', x => {
-  $('conn').textContent = '🔴 ระบบจองออฟไลน์ (ปิดปรับปรุง)';
-});
+  db.ref('.info/connected').on('value',x=>{$('conn').textContent=x.val()?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'🔴 ออฟไลน์'});
 }
 loadFB().then(startDB).catch(e=>{console.error(e);$('conn').textContent='⚠️ โหลดระบบฐานข้อมูลไม่ได้ (เช็กอินเทอร์เน็ต หรือปิดตัวบล็อกโฆษณา)'});
 render();
