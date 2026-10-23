@@ -204,8 +204,8 @@ function render(){
     const g=d.querySelector('.grid');
     seats.filter(s=>s.z===z.k).forEach(s=>{
       const b=data[s.id],el=document.createElement('button');
-      el.className='seat'+(b?' taken':'')+(!b&&rs[s.id]?' rsv':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
-      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:(rs[s.id]?'<span>🔒 สงวน</span>':'<span>ว่าง</span>'));
+      el.className='seat'+(b?' taken':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
+      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:`<span>ว่าง</span>`);
       el.title=desc(s)+(b?` — ${b.nick} (เลขที่ ${b.no})`:'');
       el.onclick=()=>pick(s);
       g.appendChild(el);
@@ -360,17 +360,18 @@ function saveOpen(){
 function clearOpen(){db.ref('config/openAt').remove().then(()=>{openDirty=false;$('openAt').value='';$('openMsg').textContent='ตั้งเป็นเปิดจองทันทีแล้ว'}).catch(fbErr)}
 function addPre(){
   const nick=$('pnick').value.trim(),no=+$('pno').value,seat=+$('pseat').value,m=$('preMsg');m.style.color='#dc2626';
+  if(!openAt)return m.textContent='ต้องตั้งเวลาเปิดจองก่อน (ด้านบน) แล้วค่อยเพิ่มรายชื่อ ไม่อย่างนั้นระบบจะลงจองให้ทันที';
   if(!nick||!(no>=1&&no<=40)||!(seat>=1&&seat<=40))return m.textContent='กรอกชื่อเล่น เลขที่ (1-40) และโต๊ะ (1-40) ให้ครบ';
   if(data[seat]||Object.values(pre).some(p=>+p.seat===seat))return m.textContent='โต๊ะ '+seat+' ถูกจองหรือสงวนไว้แล้ว';
   if(byNo(no)||Object.values(pre).some(p=>+p.no===no))return m.textContent='เลขที่ '+no+' จองหรือสงวนไว้แล้ว';
   const id=Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  db.ref('prebook/'+id).set({id,nick,no,seat,created:now()}).then(()=>{$('pnick').value=$('pno').value=$('pseat').value='';m.style.color='#16a34a';m.textContent=isOpen()?'เพิ่มแล้ว (เปิดจองแล้ว จึงลงจองให้ทันที)':'เพิ่มแล้ว จะลงจองให้อัตโนมัติเมื่อถึงเวลาเปิดจอง'}).catch(fbErr);
+  db.ref('prebook/'+id).set({id,nick,no,seat,created:now()}).then(()=>{$('pnick').value=$('pno').value=$('pseat').value='';m.style.color='#16a34a';m.textContent=isOpen()?'เพิ่มแล้ว (เลยเวลาเปิดจองแล้ว จึงลงจองให้ทันที)':'เพิ่มในรายการแล้ว ยังไม่ลงจอง จะลงจองให้ทันทีเมื่อถึงเวลาเปิดจอง'}).catch(fbErr);
 }
 function delPre(id){if(isAdmin)db.ref('prebook/'+id).remove().catch(fbErr)}
 function renderAdminPre(){
   if(!openDirty&&document.activeElement!==$('openAt'))$('openAt').value=openAt?toLocal(openAt):'';
   $('openMsg').textContent=$('openMsg').textContent||(openAt?'':'ยังไม่ได้ตั้งเวลา = เปิดจองทันที');
-  $('aPre').innerHTML=Object.values(pre).sort((a,b)=>a.seat-b.seat).map(p=>`<tr><td>${p.seat}</td><td>${esc(p.nick)} (${p.no})</td><td>${p.err?'<span style="color:#dc2626">ลงไม่ได้: '+esc(p.err)+'</span>':'รอลงจอง'}</td><td><button class="sm r" onclick="delPre('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีรายชื่อจองก่อนเวลา</td></tr>';
+  $('aPre').innerHTML=Object.values(pre).sort((a,b)=>a.seat-b.seat).map(p=>`<tr><td>${p.seat}</td><td>${esc(p.nick)} (${p.no})</td><td>${p.err?'<span style="color:#dc2626">ลงไม่ได้: '+esc(p.err)+'</span>':(isOpen()?'กำลังลงจอง...':'รอลงจองตอน '+stamp(new Date(openAt)))}</td><td><button class="sm r" onclick="delPre('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีรายชื่อจองก่อนเวลา</td></tr>';
 }
 function processPre(){ // ถึงเวลาเปิดจอง → ลงจองรายชื่อที่เพิ่มไว้ให้ทันที (ใช้ transaction กันซ้ำ)
   if(!db||!seatsLoaded||!isOpen())return;
