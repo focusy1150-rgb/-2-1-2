@@ -51,6 +51,8 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 .cfb div{display:flex}.cfb span{width:90px;color:var(--mut)}.cfb b{font-weight:600}
 .cfa{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 16px 16px}
 .cfa button{padding:10px;font-weight:600;background:#2563eb}.cfa button.g{background:#e5e7eb;color:var(--tx)}
+.seat.rsv{background:#fef3c7;border-color:#f59e0b;cursor:not-allowed}
+#openBar{text-align:center;font-weight:600}
 @media print{body *{visibility:hidden}#rc,#rc *{visibility:visible}#rc{position:absolute;left:0;top:0;width:100%}}
 </style>
 </head>
@@ -59,6 +61,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
   <h1>🪑 จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</h1>
   <span id="conn" style="font-size:.85rem;color:var(--mut)">⏳ กำลังเชื่อมต่อ...</span><button class="g" onclick="openAdmin()" id="adminBtn">🔐 ผู้ดูแลระบบ</button>
 </header>
+<div class="card" id="openBar">⏳ กำลังโหลด...</div>
 
 <div class="card">
   <div class="row">
@@ -134,6 +137,13 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
       <button class="r" onclick="clearAll()">ล้างการจองทั้งหมด</button>
       <button class="g" onclick="logout()">ออกจากระบบ</button>
     </div>
+    <h4>⏰ เวลาเปิดจอง</h4>
+    <div class="row"><div class="f"><label>วันและเวลาเปิดจอง</label><input id="openAt" type="datetime-local" step="1" oninput="openDirty=true"></div><button onclick="saveOpen()">บันทึก</button><button class="g" onclick="clearOpen()">เปิดจองทันที</button></div>
+    <div class="msg" id="openMsg" style="color:var(--mut)"></div>
+    <h4>⭐ จองก่อนเวลา (เพิ่มรายชื่อล่วงหน้า)</h4>
+    <div class="row"><div class="f"><label>ชื่อเล่น</label><input id="pnick" maxlength="30"></div><div class="f"><label>เลขที่</label><input id="pno" type="number" min="1" max="40"></div><div class="f"><label>โต๊ะ</label><input id="pseat" type="number" min="1" max="40"></div><button onclick="addPre()">เพิ่ม</button></div>
+    <div class="msg" id="preMsg"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>โต๊ะ</th><th>ชื่อเล่น (เลขที่)</th><th>สถานะ</th><th></th></tr></thead><tbody id="aPre"></tbody></table></div>
     <h4>📨 คำขอที่รออนุมัติ</h4>
     <div style="overflow-x:auto"><table><thead><tr><th>ผู้ขอ</th><th>ประเภท</th><th>โต๊ะ</th><th>เหตุผล</th><th></th></tr></thead><tbody id="aReq"></tbody></table></div>
     <h4>↔️ ย้าย/สลับที่โดยผู้ดูแล</h4>
@@ -166,7 +176,7 @@ const ROWS=5;
 let seats=[],id=1;
 ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
 
-let data={},pending=null,isAdmin=false;
+let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false;const inflight={};
 const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
 let db=null;
 function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error('load '+u));document.head.appendChild(e)})}
@@ -187,15 +197,15 @@ function setMsg(t,ok){$('msg').textContent=t;$('msg').style.color=ok?'#16a34a':'
 
 function render(){
   const no=$('no').value.trim(), q=$('q').value.trim().toLowerCase();
-  $('zones').innerHTML='';
+  $('zones').innerHTML='';const rs={};Object.values(pre).forEach(p=>rs[p.seat]=p);
   ZONES.forEach(z=>{
     const d=document.createElement('div');d.className='zone '+z.k;
     d.innerHTML=`<h3>${z.n}</h3><div class="grid"></div>`;
     const g=d.querySelector('.grid');
     seats.filter(s=>s.z===z.k).forEach(s=>{
       const b=data[s.id],el=document.createElement('button');
-      el.className='seat'+(b?' taken':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
-      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:`<span>ว่าง</span>`);
+      el.className='seat'+(b?' taken':'')+(!b&&rs[s.id]?' rsv':'')+(b&&no&&String(b.no)===no?' mine':'')+(b&&q&&(b.nick.toLowerCase().includes(q)||String(b.no)===q)?' hit':'');
+      el.innerHTML=`<b>${s.id}</b>`+(b?`<span class="nm">${esc(b.nick)}<br>(${b.no})</span>`:(rs[s.id]?'<span>🔒 สงวน</span>':'<span>ว่าง</span>'));
       el.title=desc(s)+(b?` — ${b.nick} (เลขที่ ${b.no})`:'');
       el.onclick=()=>pick(s);
       g.appendChild(el);
@@ -211,6 +221,8 @@ function render(){
 }
 
 function pick(s){
+  if(!isOpen())return setMsg('ยังไม่ถึงเวลาเปิดจอง (เปิดจอง '+stamp(new Date(openAt))+')');
+  if(!data[s.id]&&Object.values(pre).some(p=>+p.seat===s.id))return setMsg('โต๊ะนี้ถูกสงวนไว้แล้ว');
   const nick=$('nick').value.trim(),no=$('no').value.trim();
   const me=nick&&no?mySeat(nick,no):null;
   if(me){if(me.seat===s.id)return setMsg('นี่คือโต๊ะของคุณอยู่แล้ว',true);return openReq(s.id)}
@@ -224,6 +236,7 @@ function pick(s){
 }
 function confirmBook(){
   const {s,nick,no}=pending;
+  if(!isOpen()){closeAll();return setMsg('ยังไม่ถึงเวลาเปิดจอง')}
   if(!db){closeAll();return setMsg('เชื่อมต่อฐานข้อมูลไม่ได้ ลองรีเฟรชหน้า')}
   if(data[s.id]||byNo(no)){closeAll();return setMsg('โต๊ะนี้หรือเลขที่นี้ถูกใช้ไปแล้ว')}
   const b={nick,no:+no,seat:s.id,desc:desc(s),time:stamp(new Date())};
@@ -253,6 +266,7 @@ function login(){
 }
 function logout(){isAdmin=false;closeAll()}
 function renderAdmin(){
+  renderAdminPre();
   renderAdminReq();
   $('aList').innerHTML=Object.entries(data).sort((a,b)=>a[0]-b[0]).map(([i,b])=>`<tr><td>${i}</td><td>${esc(b.nick)}</td><td>${b.no}</td><td>${b.time}</td><td><button class="r" onclick="cancelSeat(${i})">ยกเลิก</button></td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--mut)">ยังไม่มีการจอง</td></tr>';
 }
@@ -323,10 +337,64 @@ function adminMove(){
   });
 }
 
+// ---- เวลาเปิดจอง / จองก่อนเวลา ----
+const now=()=>Date.now()+offset;
+const isOpen=()=>!openAt||now()>=openAt;
+const p2=n=>String(n).padStart(2,'0');
+function toLocal(ms){const d=new Date(ms);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
+function tickBar(){
+  const el=$('openBar');
+  if(!openAt){el.innerHTML='🟢 เปิดจองแล้ว';return}
+  const d=openAt-now();
+  if(d>0){
+    const t=Math.ceil(d/1000),dd=Math.floor(t/86400),h=Math.floor(t%86400/3600),m=Math.floor(t%3600/60);
+    el.innerHTML='⏳ เปิดจอง '+stamp(new Date(openAt))+'<br><span style="font-size:1.3rem">อีก '+(dd?dd+' วัน ':'')+p2(h)+':'+p2(m)+':'+p2(t%60)+'</span>';
+  }else{el.innerHTML='🟢 เปิดจองแล้ว (เปิดเมื่อ '+stamp(new Date(openAt))+')';processPre()}
+}
+setInterval(tickBar,1000);
+function saveOpen(){
+  const v=$('openAt').value,m=$('openMsg');
+  if(!v)return m.textContent='เลือกวันและเวลาก่อน';
+  db.ref('config/openAt').set(new Date(v).getTime()).then(()=>{openDirty=false;m.style.color='#16a34a';m.textContent='บันทึกเวลาเปิดจองแล้ว'}).catch(fbErr);
+}
+function clearOpen(){db.ref('config/openAt').remove().then(()=>{openDirty=false;$('openAt').value='';$('openMsg').textContent='ตั้งเป็นเปิดจองทันทีแล้ว'}).catch(fbErr)}
+function addPre(){
+  const nick=$('pnick').value.trim(),no=+$('pno').value,seat=+$('pseat').value,m=$('preMsg');m.style.color='#dc2626';
+  if(!nick||!(no>=1&&no<=40)||!(seat>=1&&seat<=40))return m.textContent='กรอกชื่อเล่น เลขที่ (1-40) และโต๊ะ (1-40) ให้ครบ';
+  if(data[seat]||Object.values(pre).some(p=>+p.seat===seat))return m.textContent='โต๊ะ '+seat+' ถูกจองหรือสงวนไว้แล้ว';
+  if(byNo(no)||Object.values(pre).some(p=>+p.no===no))return m.textContent='เลขที่ '+no+' จองหรือสงวนไว้แล้ว';
+  const id=Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  db.ref('prebook/'+id).set({id,nick,no,seat,created:now()}).then(()=>{$('pnick').value=$('pno').value=$('pseat').value='';m.style.color='#16a34a';m.textContent=isOpen()?'เพิ่มแล้ว (เปิดจองแล้ว จึงลงจองให้ทันที)':'เพิ่มแล้ว จะลงจองให้อัตโนมัติเมื่อถึงเวลาเปิดจอง'}).catch(fbErr);
+}
+function delPre(id){if(isAdmin)db.ref('prebook/'+id).remove().catch(fbErr)}
+function renderAdminPre(){
+  if(!openDirty&&document.activeElement!==$('openAt'))$('openAt').value=openAt?toLocal(openAt):'';
+  $('openMsg').textContent=$('openMsg').textContent||(openAt?'':'ยังไม่ได้ตั้งเวลา = เปิดจองทันที');
+  $('aPre').innerHTML=Object.values(pre).sort((a,b)=>a.seat-b.seat).map(p=>`<tr><td>${p.seat}</td><td>${esc(p.nick)} (${p.no})</td><td>${p.err?'<span style="color:#dc2626">ลงไม่ได้: '+esc(p.err)+'</span>':'รอลงจอง'}</td><td><button class="sm r" onclick="delPre('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีรายชื่อจองก่อนเวลา</td></tr>';
+}
+function processPre(){ // ถึงเวลาเปิดจอง → ลงจองรายชื่อที่เพิ่มไว้ให้ทันที (ใช้ transaction กันซ้ำ)
+  if(!db||!seatsLoaded||!isOpen())return;
+  Object.values(pre).forEach(q=>{
+    if(q.err||inflight[q.id])return;
+    inflight[q.id]=1;
+    const fin=()=>{delete inflight[q.id]};
+    if(data[q.seat]||byNo(q.no)){db.ref('prebook/'+q.id+'/err').set(data[q.seat]?'โต๊ะซ้ำ':'เลขที่ซ้ำ').then(fin,fin);return}
+    const b={nick:q.nick,no:+q.no,seat:+q.seat,desc:desc(seats[q.seat-1]),time:stamp(new Date(Math.max(openAt||0,q.created||0))),pre:true};
+    db.ref('seats/'+sk(q.seat)).transaction(c=>c===null?b:undefined,(err,ok)=>{
+      if(ok)db.ref('prebook/'+q.id).remove().then(fin,fin);
+      else db.ref('prebook/'+q.id+'/err').set('โต๊ะซ้ำ').then(fin,fin);
+    });
+  });
+}
+tickBar();
+
 ['no','nick','q'].forEach(i=>$(i).addEventListener('input',render));
 function startDB(){
   try{firebase.initializeApp(FB);db=firebase.database()}catch(e){console.error(e);$('conn').textContent='⚠️ เชื่อมต่อฐานข้อมูลไม่ได้';return}
-  db.ref('seats').on('value',snap=>{const v=snap.val()||{};data={};Object.keys(v).forEach(k=>data[k.slice(1)]=v[k]);render()},fbErr);
+  db.ref('seats').on('value',snap=>{const v=snap.val()||{};data={};Object.keys(v).forEach(k=>data[k.slice(1)]=v[k]);seatsLoaded=true;render();processPre()},fbErr);
+  db.ref('.info/serverTimeOffset').on('value',x=>{offset=x.val()||0});
+  db.ref('config/openAt').on('value',x=>{openAt=x.val()||0;render();tickBar();processPre()},fbErr);
+  db.ref('prebook').on('value',x=>{pre=x.val()||{};render();processPre()},fbErr);
   db.ref('reqs').on('value',snap=>{reqs=Object.values(snap.val()||{}).sort((a,b)=>a.id<b.id?-1:1);render()},fbErr);
   db.ref('.info/connected').on('value',x=>{$('conn').textContent=x.val()?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'🔴 ออฟไลน์'});
 }
