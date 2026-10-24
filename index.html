@@ -369,7 +369,7 @@ function updConn(){$('conn').textContent=sysOff?'🔴 ออฟไลน์ (ป
 function toggleSys(){if(!isAdmin)return;(sysOff?db.ref('config/offline').remove():db.ref('config/offline').set(true)).catch(fbErr)}
 function tickBar(){
   const el=$('openBar');
-  if(sysOff){el.innerHTML='🔴 ปิดระบบจองแล้ว (ออฟไลน์) ดูข้อมูลได้อย่างเดียว';return}
+  if(sysOff){el.innerHTML='🔴 ปิดระบบจองแล้ว (ออฟไลน์)';return}
   if(!openAt){el.innerHTML='🟢 เปิดจองแล้ว';return}
   const d=openAt-now();
   if(d>0){
