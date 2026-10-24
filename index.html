@@ -191,7 +191,7 @@ const ROWS=5;
 let seats=[],id=1;
 ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
 
-let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false,sysOff=false,connected=false;const inflight={};
+let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false,sysOff=false,sysAt=0,connected=false;const inflight={};
 const APP_VERSION=3; // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์ แล้วกดปุ่มบังคับอัปเดตในเมนูผู้ดูแล
 const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
 let db=null,auth=null;const ADMIN_EMAIL='focus2013@admin.local';
@@ -237,7 +237,7 @@ function render(){
 }
 
 function pick(s){
-  if(sysOff)return setMsg('ระบบปิดการจองแล้ว (ออฟไลน์)');
+  if(sysOff)return setMsg('ปิดการจองโต๊ะแล้ว'+(sysAt?' วันที่ '+fmtCE(sysAt):'')+'');
   if(!isOpen())return setMsg('ยังไม่ถึงเวลาเปิดจอง (เปิดจอง '+stamp(new Date(openAt))+')');
   if(!data[s.id]&&Object.values(pre).some(p=>+p.seat===s.id))return setMsg('โต๊ะนี้ถูกสงวนไว้แล้ว');
   const nick=$('nick').value.trim(),no=$('no').value.trim();
@@ -253,7 +253,7 @@ function pick(s){
 }
 function confirmBook(){
   const {s,nick,no}=pending;
-  if(sysOff){closeAll();return setMsg('ระบบปิดการจองแล้ว (ออฟไลน์)')}
+  if(sysOff){closeAll();return setMsg('ปิดการจองโต๊ะแล้ว'+(sysAt?' วันที่ '+fmtCE(sysAt):'')+'')}
   if(!isOpen()){closeAll();return setMsg('ยังไม่ถึงเวลาเปิดจอง')}
   if(!db){closeAll();return setMsg('เชื่อมต่อฐานข้อมูลไม่ได้ ลองรีเฟรชหน้า')}
   if(data[s.id]||byNo(no)){closeAll();return setMsg('โต๊ะนี้หรือเลขที่นี้ถูกใช้ไปแล้ว')}
@@ -365,11 +365,12 @@ const now=()=>Date.now()+offset;
 const isOpen=()=>!openAt||now()>=openAt;
 const p2=n=>String(n).padStart(2,'0');
 function toLocal(ms){const d=new Date(ms);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
-function updConn(){$('conn').textContent=sysOff?'🔴 ออฟไลน์ (ปิดระบบจองแล้ว)':connected?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'⚠️ ขาดการเชื่อมต่อ'}
-function toggleSys(){if(!isAdmin)return;(sysOff?db.ref('config/offline').remove():db.ref('config/offline').set(true)).catch(fbErr)}
+function fmtCE(ms){const d=new Date(ms);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear()+' ค.ศ. เวลา '+p2(d.getHours())+':'+p2(d.getMinutes())}
+function updConn(){$('conn').textContent=sysOff?'🔴 ออฟไลน์':connected?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'⚠️ ขาดการเชื่อมต่อ'}
+function toggleSys(){if(!isAdmin)return;(sysOff?db.ref('config/offline').remove():db.ref('config/offline').set(now())).catch(fbErr)}
 function tickBar(){
   const el=$('openBar');
-  if(sysOff){el.innerHTML='🔴 ปิดระบบจองแล้ว (ออฟไลน์)';return}
+  if(sysOff){el.innerHTML='🔴 ปิดการจองโต๊ะแล้ว'+(sysAt?' วันที่ '+fmtCE(sysAt):'');return}
   if(!openAt){el.innerHTML='🟢 เปิดจองแล้ว';return}
   const d=openAt-now();
   if(d>0){
@@ -431,7 +432,7 @@ function startDB(){
   db.ref('prebook').on('value',x=>{pre=x.val()||{};render();processPre()},fbErr);
   db.ref('reqs').on('value',snap=>{reqs=Object.values(snap.val()||{}).sort((a,b)=>a.id<b.id?-1:1);render()},fbErr);
   db.ref('.info/connected').on('value',x=>{connected=!!x.val();updConn()});
-  db.ref('config/offline').on('value',x=>{sysOff=!!x.val();updConn();tickBar();render()},fbErr);
+  db.ref('config/offline').on('value',x=>{const v=x.val();sysOff=!!v;sysAt=typeof v==='number'?v:0;updConn();tickBar();render()},fbErr);
 }
 loadFB().then(startDB).catch(e=>{console.error(e);$('conn').textContent='⚠️ โหลดระบบฐานข้อมูลไม่ได้ (เช็กอินเทอร์เน็ต หรือปิดตัวบล็อกโฆษณา)'});
 render();
