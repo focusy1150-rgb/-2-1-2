@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>จองโต๊ะเรียน ม.2/1 เทอม 2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
@@ -59,7 +60,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 <body>
 <header>
   <h1>🪑 จองโต๊ะเรียน ห้อง ม.2/1 เทอม 2</h1>
-  <span id="conn" style="font-size:.85rem;color:var(--mut)">⏳ กำลังเชื่อมต่อ...</span><button class="g" onclick="openAdmin()" id="adminBtn">🔐 ผู้ดูแลระบบ</button>
+  <span style="font-size:.75rem;color:var(--mut)">เวอร์ชัน 2026.10.23-c</span> <span id="conn" style="font-size:.85rem;color:var(--mut)">⏳ กำลังเชื่อมต่อ...</span><button class="g" onclick="openAdmin()" id="adminBtn">🔐 ผู้ดูแลระบบ</button>
 </header>
 <div class="card" id="openBar">⏳ กำลังโหลด...</div>
 
@@ -137,6 +138,9 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
       <button class="r" onclick="clearAll()">ล้างการจองทั้งหมด</button>
       <button class="g" onclick="logout()">ออกจากระบบ</button>
     </div>
+    <h4>🔄 เวอร์ชันหน้าเว็บ</h4>
+    <div class="row"><button onclick="forceVer()">บังคับทุกเครื่องให้ใช้เวอร์ชัน <span id="vNow"></span> ขึ้นไป</button></div>
+    <div class="msg" id="vMsg" style="color:var(--mut)">กดหลังจากอัปโหลดไฟล์เวอร์ชันใหม่ เครื่องที่ยังเป็นเวอร์ชันเก่าจะถูกให้โหลดใหม่</div>
     <h4>⏰ เวลาเปิดจอง</h4>
     <div class="row"><div class="f"><label>วันและเวลาเปิดจอง</label><input id="openAt" type="datetime-local" step="1" oninput="openDirty=true"></div><button onclick="saveOpen()">บันทึก</button><button class="g" onclick="clearOpen()">เปิดจองทันที</button></div>
     <div class="msg" id="openMsg" style="color:var(--mut)"></div>
@@ -153,6 +157,14 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
     <div style="overflow-x:auto"><table><thead><tr><th>โต๊ะ</th><th>ชื่อเล่น</th><th>เลขที่</th><th>เวลา</th><th></th></tr></thead><tbody id="aList"></tbody></table></div>
   </div>
 </div></div>
+
+<div class="overlay" id="ovV" style="z-index:50"><div class="modal">
+  <h3 style="margin-top:0">🔄 มีเวอร์ชันใหม่</h3>
+  <p>เครื่องนี้ใช้หน้าเว็บเวอร์ชันเก่า (v<span id="vOld"></span>) กรุณากดปุ่มเพื่อโหลดหน้าใหม่</p>
+  <button onclick="reloadNew()">🔄 โหลดเวอร์ชันใหม่</button>
+  <p style="font-size:.8rem;color:var(--mut)">ถ้ากดแล้วยังขึ้นข้อความนี้ แปลว่าไฟล์ที่เปิดอยู่เป็นไฟล์เก่าที่เก็บไว้ในเครื่อง ให้เปิดจากลิงก์หลักที่ครูส่งให้ใหม่</p>
+</div></div>
+<div id="ver" style="text-align:center;color:var(--mut);font-size:.75rem;margin:6px 0"></div>
 
 <!-- Custom confirm (แทน confirm/alert ของเบราว์เซอร์ ซึ่งอาจถูกบล็อก) -->
 <div class="overlay" id="ovK" style="z-index:20"><div class="modal">
@@ -177,13 +189,14 @@ let seats=[],id=1;
 ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
 
 let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false;const inflight={};
+const APP_VERSION=3; // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์ แล้วกดปุ่มบังคับอัปเดตในเมนูผู้ดูแล
 const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
-let db=null;
+let db=null,auth=null;const ADMIN_EMAIL='focus2013@admin.local';
 function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error('load '+u));document.head.appendChild(e)})}
 async function loadFB(){ // ลองโหลด SDK จากหลายแหล่ง เผื่อแหล่งใดแหล่งหนึ่งถูกบล็อก
   const bases=['https://www.gstatic.com/firebasejs/10.12.2/','https://cdn.jsdelivr.net/npm/firebase@10.12.2/'];
   for(const b of bases){
-    try{delete window.firebase;await loadScript(b+'firebase-app-compat.js');await loadScript(b+'firebase-database-compat.js');if(window.firebase)return}catch(e){console.warn(e)}
+    try{delete window.firebase;await loadScript(b+'firebase-app-compat.js');await loadScript(b+'firebase-database-compat.js');await loadScript(b+'firebase-auth-compat.js');if(window.firebase)return}catch(e){console.warn(e)}
   }
   throw new Error('ไม่สามารถโหลด Firebase SDK ได้');
 }
@@ -255,16 +268,16 @@ function showReceipt(b){
   <div><span>เวลาที่จอง</span><b>${b.time}</b></div>${b.upd?`<div style="border:0"><span>ย้าย/สลับล่าสุด</span><b>${b.upd}</b></div>`:""}`;
   $('ovR').classList.add('on');
 }
-function closeAll(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'))}
+function closeAll(){document.querySelectorAll('.overlay:not(#ovV)').forEach(o=>o.classList.remove('on'))}
 
 // Admin
 function openAdmin(){$('ovA').classList.add('on');$('aLogin').style.display=isAdmin?'none':'';$('aPanel').style.display=isAdmin?'':'none';if(isAdmin)renderAdmin()}
 function login(){
-  if($('au').value.trim()==='focus2013'&&$('ap').value==='ihavecpu'){
-    isAdmin=true;$('aMsg').textContent='';$('au').value=$('ap').value='';openAdmin();
-  }else $('aMsg').textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+  const u=$('au').value.trim(),m=$('aMsg');
+  if(!auth)return m.textContent='ยังเชื่อมต่อระบบไม่ได้ ลองรีเฟรชหน้า';
+  auth.signInWithEmailAndPassword(u+'@admin.local',$('ap').value).then(()=>{m.textContent='';$('au').value=$('ap').value=''}).catch(()=>{m.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'});
 }
-function logout(){isAdmin=false;closeAll()}
+function logout(){if(auth)auth.signOut();closeAll()}
 function renderAdmin(){
   renderAdminPre();
   renderAdminReq();
@@ -337,6 +350,10 @@ function adminMove(){
   });
 }
 
+// ---- เวอร์ชัน ----
+$('ver').textContent='เวอร์ชันหน้าเว็บ v'+APP_VERSION;$('vNow').textContent=APP_VERSION;
+function reloadNew(){const u=new URL(location.href);u.searchParams.set('v',Date.now());location.replace(u.toString())}
+function forceVer(){if(!isAdmin)return;db.ref('config/minVersion').set(APP_VERSION).then(()=>{$('vMsg').style.color='#16a34a';$('vMsg').textContent='ตั้งเวอร์ชันขั้นต่ำเป็น v'+APP_VERSION+' แล้ว เครื่องที่เก่ากว่านี้จะขึ้นให้โหลดใหม่'}).catch(fbErr)}
 // ---- เวลาเปิดจอง / จองก่อนเวลา ----
 const now=()=>Date.now()+offset;
 const isOpen=()=>!openAt||now()>=openAt;
@@ -374,7 +391,7 @@ function renderAdminPre(){
   $('aPre').innerHTML=Object.values(pre).sort((a,b)=>a.seat-b.seat).map(p=>`<tr><td>${p.seat}</td><td>${esc(p.nick)} (${p.no})</td><td>${p.err?'<span style="color:#dc2626">ลงไม่ได้: '+esc(p.err)+'</span>':(isOpen()?'กำลังลงจอง...':'รอลงจองตอน '+stamp(new Date(openAt)))}</td><td><button class="sm r" onclick="delPre('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mut)">ยังไม่มีรายชื่อจองก่อนเวลา</td></tr>';
 }
 function processPre(){ // ถึงเวลาเปิดจอง → ลงจองรายชื่อที่เพิ่มไว้ให้ทันที (ใช้ transaction กันซ้ำ)
-  if(!db||!seatsLoaded||!isOpen())return;
+  if(!db||!seatsLoaded||!isOpen()||!isAdmin)return; // ลงจองล่วงหน้าได้เฉพาะตอนผู้ดูแลล็อกอินอยู่
   Object.values(pre).forEach(q=>{
     if(q.err||inflight[q.id])return;
     inflight[q.id]=1;
@@ -391,8 +408,9 @@ tickBar();
 
 ['no','nick','q'].forEach(i=>$(i).addEventListener('input',render));
 function startDB(){
-  try{firebase.initializeApp(FB);db=firebase.database()}catch(e){console.error(e);$('conn').textContent='⚠️ เชื่อมต่อฐานข้อมูลไม่ได้';return}
+  try{firebase.initializeApp(FB);db=firebase.database();auth=firebase.auth();auth.onAuthStateChanged(u=>{isAdmin=!!u&&u.email===ADMIN_EMAIL;if($('ovA').classList.contains('on'))openAdmin();render();processPre()})}catch(e){console.error(e);$('conn').textContent='⚠️ เชื่อมต่อฐานข้อมูลไม่ได้';return}
   db.ref('seats').on('value',snap=>{const v=snap.val()||{};data={};Object.keys(v).forEach(k=>data[k.slice(1)]=v[k]);seatsLoaded=true;render();processPre()},fbErr);
+  db.ref('config/minVersion').on('value',x=>{const m=+x.val()||0;if(APP_VERSION<m){$('vOld').textContent=APP_VERSION;$('ovV').classList.add('on')}else $('ovV').classList.remove('on')});
   db.ref('.info/serverTimeOffset').on('value',x=>{offset=x.val()||0});
   db.ref('config/openAt').on('value',x=>{openAt=x.val()||0;render();tickBar();processPre()},fbErr);
   db.ref('prebook').on('value',x=>{pre=x.val()||{};render();processPre()},fbErr);
