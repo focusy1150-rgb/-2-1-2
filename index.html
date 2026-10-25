@@ -132,7 +132,7 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
     <div class="row"><button onclick="login()">เข้าสู่ระบบ</button><button class="g" onclick="closeAll()">ปิด</button></div>
   </div>
   <div id="aPanel" style="display:none">
-    <h3 style="margin-top:0">🛠️ แผงผู้ดูแล (focus2013)</h3>
+    <h3 style="margin-top:0">🛠️ แผงผู้ดูแล</h3>
     <div class="row" style="margin-bottom:8px">
       <button onclick="exportCSV()">⬇️ ส่งออก CSV</button>
       <button class="r" onclick="clearAll()">ล้างการจองทั้งหมด</button>
@@ -194,7 +194,7 @@ ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:
 let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false,sysOff=false,sysAt=0,connected=false;const inflight={};
 const APP_VERSION=3; // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์ แล้วกดปุ่มบังคับอัปเดตในเมนูผู้ดูแล
 const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
-let db=null,auth=null;const ADMIN_EMAIL='focus2013@admin.local';
+let db=null,auth=null;
 function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error('load '+u));document.head.appendChild(e)})}
 async function loadFB(){ // ลองโหลด SDK จากหลายแหล่ง เผื่อแหล่งใดแหล่งหนึ่งถูกบล็อก
   const bases=['https://www.gstatic.com/firebasejs/10.12.2/','https://cdn.jsdelivr.net/npm/firebase@10.12.2/'];
@@ -420,10 +420,8 @@ tickBar();
 ['no','nick','q'].forEach(i=>$(i).addEventListener('input',render));
 function startDB(){
   try{firebase.initializeApp(FB);db=firebase.database();auth=firebase.auth();auth.onAuthStateChanged(u=>{
-    const fin=ok=>{isAdmin=ok;if($('ovA').classList.contains('on'))openAdmin();render();processPre()};
-    if(!u)return fin(false);
-    if(u.email===ADMIN_EMAIL)return fin(true); // ผู้ดูแลหลัก
-    db.ref('admins/'+u.uid).once('value').then(x=>fin(x.val()===true)).catch(()=>fin(false)); // ผู้ดูแลที่เพิ่มในรายการ admins
+    isAdmin=!!u; // แค่คุมหน้าจอ ส่วนสิทธิ์เขียนจริงถูกตรวจที่กฎของ Firebase
+    if($('ovA').classList.contains('on'))openAdmin();render();processPre();
   })}catch(e){console.error(e);$('conn').textContent='⚠️ เชื่อมต่อฐานข้อมูลไม่ได้';return}
   db.ref('seats').on('value',snap=>{const v=snap.val()||{};data={};Object.keys(v).forEach(k=>data[k.slice(1)]=v[k]);seatsLoaded=true;render();processPre()},fbErr);
   db.ref('config/minVersion').on('value',x=>{const m=+x.val()||0;if(APP_VERSION<m){$('vOld').textContent=APP_VERSION;$('ovV').classList.add('on')}else $('ovV').classList.remove('on')});
