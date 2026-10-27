@@ -392,7 +392,7 @@ const now=()=>Date.now()+offset;
 const isOpen=()=>!openAt||now()>=openAt;
 const p2=n=>String(n).padStart(2,'0');
 function toLocal(ms){const d=new Date(ms);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
-function fmtCE(ms){const d=new Date(ms);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear()+' ค.ศ. เวลา '+p2(d.getHours())+':'+p2(d.getMinutes())}
+function fmtCE(ms){const d=new Date(ms);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear()+' เวลา '+p2(d.getHours())+':'+p2(d.getMinutes())}
 function showClosed(){const o=$('ovS');if(sysOff&&!closedSeen){$('sDate').textContent=sysAt?'ปิดการจองเมื่อ '+fmtCE(sysAt):'';o.classList.add('on')}else o.classList.remove('on')}
 function okClosed(){closedSeen=true;$('ovS').classList.remove('on')}
 function updConn(){$('conn').textContent=sysOff?'🔴 ออฟไลน์':connected?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'⚠️ ขาดการเชื่อมต่อ'}
