@@ -54,6 +54,16 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 .cfa button{padding:10px;font-weight:600;background:#2563eb}.cfa button.g{background:#e5e7eb;color:var(--tx)}
 .seat.rsv{background:#fef3c7;border-color:#f59e0b;cursor:not-allowed}
 #openBar{text-align:center;font-weight:600}
+#ovS{z-index:30}
+.cl{max-width:360px;padding:0;border:4px solid var(--tx);border-radius:22px;overflow:hidden;text-align:center}
+.cl h2{margin:0;padding:14px 12px;font-size:1.25rem;border-bottom:3px solid var(--tx)}
+.cl .box{margin:14px;padding:16px 12px;border:4px solid var(--tx);border-radius:20px;line-height:1.7}
+.cl .box p{margin:8px 0 0}
+.cl .logos{display:flex;justify-content:center;gap:14px;margin:0 14px;padding:12px 8px;border:3px solid var(--tx);border-radius:50px}
+.cl .lg{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;color:var(--mut)}
+.cl .lg i{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:3px solid var(--tx)}
+.cl .own{display:inline-block;margin:14px 0 4px;padding:8px 20px;border-radius:20px;background:#22a84a;color:#fff;font-weight:600}
+.cl .ok{display:block;margin:10px auto 16px;min-width:130px;background:transparent;color:var(--tx);border:3px solid var(--tx);border-radius:14px;padding:8px 18px;font-weight:600}
 @media print{body *{visibility:hidden}#rc,#rc *{visibility:visible}#rc{position:absolute;left:0;top:0;width:100%}}
 </style>
 </head>
@@ -169,6 +179,23 @@ button.sm{padding:4px 9px;font-size:.8rem;margin-right:4px}
 </div></div>
 <div id="ver" style="text-align:center;color:var(--mut);font-size:.75rem;margin:6px 0"></div>
 
+<!-- ป๊อปอัปแจ้งปิดการจอง (แสดงตอนเข้าเว็บเมื่อระบบปิดอยู่) -->
+<div class="overlay" id="ovS"><div class="modal cl">
+  <h2>การจองโต๊ะจบแล้ว</h2>
+  <div class="box">
+    <svg width="64" height="58" viewBox="0 0 64 58" aria-hidden="true"><path d="M32 4 60 54H4z" fill="#facc15" stroke="#eab308" stroke-width="3" stroke-linejoin="round"/><path d="M32 20v18" stroke="#78350f" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="46" r="3" fill="#78350f"/></svg>
+    <p>ขอบคุณทุกคนที่ช่วยกันทดสอบและใช้งานเว็บนี้<br>เว็บที่เราใช้จองโต๊ะกันในห้องของเรา<br>ขอบคุณสำหรับความร่วมมือครับ 🙏</p>
+    <p id="sDate" style="font-size:.8rem;color:var(--mut)"></p>
+  </div>
+  <div class="logos">
+    <div class="lg"><i style="background:#e8743b"><svg width="28" height="28" viewBox="0 0 24 24"><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></g></svg></i>Claude</div>
+    <div class="lg"><i style="background:#8250df"><svg width="28" height="28" viewBox="0 0 16 16"><path fill="#fff" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></i>GitHub</div>
+    <div class="lg"><i style="background:#e5342d"><svg width="28" height="28" viewBox="0 0 24 24"><path fill="#fff" d="M5.5 18 8.3 3.5l3 5.6zM5.5 18l8.3-9.2 4.7 9.4L12 21.5z"/></svg></i>Firebase</div>
+  </div>
+  <div class="own">Owner: focusy1150</div>
+  <button class="ok" onclick="okClosed()">OK</button>
+</div></div>
+
 <!-- Custom confirm (แทน confirm/alert ของเบราว์เซอร์ ซึ่งอาจถูกบล็อก) -->
 <div class="overlay" id="ovK" style="z-index:20"><div class="modal">
   <p id="kTxt" style="font-size:1.05rem;margin-top:0"></p>
@@ -191,7 +218,7 @@ const ROWS=5;
 let seats=[],id=1;
 ZONES.forEach(z=>{for(let r=1;r<=ROWS;r++)for(let c=1;c<=z.c;c++)seats.push({id:id++,z:z.k,zn:z.n,r,c})});
 
-let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false,sysOff=false,sysAt=0,connected=false;const inflight={};
+let data={},pending=null,isAdmin=false,openAt=0,pre={},offset=0,seatsLoaded=false,openDirty=false,sysOff=false,sysAt=0,connected=false,closedSeen=false;const inflight={};
 const APP_VERSION=3; // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์ แล้วกดปุ่มบังคับอัปเดตในเมนูผู้ดูแล
 const FB={apiKey:"AIzaSyAw9bGYrEWaxBHl4heD-Grd4_8viv2vHoI",authDomain:"sw2-201.firebaseapp.com",databaseURL:"https://sw2-201-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"sw2-201",storageBucket:"sw2-201.firebasestorage.app",messagingSenderId:"995612174301",appId:"1:995612174301:web:bac221a979fe985708b834"};
 let db=null,auth=null;
@@ -366,6 +393,8 @@ const isOpen=()=>!openAt||now()>=openAt;
 const p2=n=>String(n).padStart(2,'0');
 function toLocal(ms){const d=new Date(ms);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
 function fmtCE(ms){const d=new Date(ms);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear()+' ค.ศ. เวลา '+p2(d.getHours())+':'+p2(d.getMinutes())}
+function showClosed(){const o=$('ovS');if(sysOff&&!closedSeen){$('sDate').textContent=sysAt?'ปิดการจองเมื่อ '+fmtCE(sysAt):'';o.classList.add('on')}else o.classList.remove('on')}
+function okClosed(){closedSeen=true;$('ovS').classList.remove('on')}
 function updConn(){$('conn').textContent=sysOff?'🔴 ออฟไลน์':connected?'🟢 ออนไลน์ (ข้อมูลอัปเดตสดทุกเครื่อง)':'⚠️ ขาดการเชื่อมต่อ'}
 function toggleSys(){if(!isAdmin)return;(sysOff?db.ref('config/offline').remove():db.ref('config/offline').set(now())).catch(fbErr)}
 function tickBar(){
@@ -430,7 +459,7 @@ function startDB(){
   db.ref('prebook').on('value',x=>{pre=x.val()||{};render();processPre()},fbErr);
   db.ref('reqs').on('value',snap=>{reqs=Object.values(snap.val()||{}).sort((a,b)=>a.id<b.id?-1:1);render()},fbErr);
   db.ref('.info/connected').on('value',x=>{connected=!!x.val();updConn()});
-  db.ref('config/offline').on('value',x=>{const v=x.val();sysOff=!!v;sysAt=typeof v==='number'?v:0;updConn();tickBar();render()},fbErr);
+  db.ref('config/offline').on('value',x=>{const v=x.val();sysOff=!!v;sysAt=typeof v==='number'?v:0;if(!sysOff)closedSeen=false;showClosed();updConn();tickBar();render()},fbErr);
 }
 loadFB().then(startDB).catch(e=>{console.error(e);$('conn').textContent='⚠️ โหลดระบบฐานข้อมูลไม่ได้ (เช็กอินเทอร์เน็ต หรือปิดตัวบล็อกโฆษณา)'});
 render();
